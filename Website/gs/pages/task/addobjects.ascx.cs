@@ -110,6 +110,9 @@ namespace GalleryServerPro.Web.Pages.Task
 			if (GallerySettings.MediaObjectPathIsReadOnly)
 				RedirectToAlbumViewPage("msg={0}", ((int)MessageType.CannotEditGalleryIsReadOnly).ToString(CultureInfo.InvariantCulture));
 
+		  if (GetAlbum().IsVirtualAlbum)
+        RedirectToAlbumViewPage("msg={0}", ((int)MessageType.AlbumDoesNotExist).ToString(CultureInfo.InvariantCulture));
+
 			this.CheckUserSecurity(SecurityActions.AddMediaObject);
 
 			if (!IsPostBack)
@@ -187,8 +190,6 @@ namespace GalleryServerPro.Web.Pages.Task
 		{
 			RegisterJavascriptFiles();
 
-			AddPopupInfoItems();
-
 			VerifyUploadSettingsAreEnabled();
 		}
 
@@ -202,8 +203,8 @@ namespace GalleryServerPro.Web.Pages.Task
 	<script src='{0}'></script>
 	<script src='{1}'></script>
 ",
- Utils.GetUrl("/script/plupload/plupload.full.js"),
- Utils.GetUrl("/script/plupload/jquery.plupload.queue.js")
+ Utils.GetUrl("/script/plupload/plupload.full.min.js"),
+ Utils.GetUrl("/script/plupload/jquery.ui.plupload.min.js")
  );
 
 			head.Controls.Add(new LiteralControl(script));
@@ -268,29 +269,6 @@ namespace GalleryServerPro.Web.Pages.Task
 				return false;
 			}
 			return true;
-		}
-
-		/// <summary>
-		/// Add any PopupInfoItem controls that cannot be declaratively created in the aspx page because one or more
-		/// properties are computed.
-		/// </summary>
-		private void AddPopupInfoItems()
-		{
-			//// Create the popup for the local media tab's body text in the overview section, just below the text
-			//// "Select one or more files on your hard drive". If it wasn't for the string formatting of the DialogBody property, 
-			//// we could have declared it in the aspx page like this:
-
-			////<tis:PopupInfoItem ID="PopupInfoItem2" runat="server" ControlId="lblLocalMediaOverview" DialogTitle="<%$ Resources:GalleryServerPro, Task_Add_Objects_Local_Media_Overview_Hdr %>"
-			////DialogBody="<% =GetLocalMediaPopupBodyText();%>" />
-			//int maxUploadSize = GallerySettings.MaxUploadSize;
-
-			//PopupInfoItem popupInfoItem = new PopupInfoItem();
-			//popupInfoItem.ID = "poi7";
-			//popupInfoItem.ControlId = "lblLocalMediaOverview";
-			//popupInfoItem.DialogTitle = Resources.GalleryServerPro.Task_Add_Objects_Local_Media_Overview_Hdr;
-			//popupInfoItem.DialogBody = String.Format(CultureInfo.CurrentCulture, Resources.GalleryServerPro.Task_Add_Objects_Local_Media_Overview_Bdy, maxUploadSize);
-
-			//PopupInfo1.PopupInfoItems.Add(popupInfoItem);
 		}
 
 		private void VerifyUploadSettingsAreEnabled()

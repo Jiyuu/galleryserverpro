@@ -62,6 +62,12 @@ namespace GalleryServerPro.Web.Entity
 		public int VirtualType { get; set; }
 
 		/// <summary>
+		/// Gets or sets the RSS URL for the album. Will be null when an RSS URL is not valid (eg. for virtual root
+		/// albums or when not running an Enterprise license.)
+		/// </summary>
+		public string RssUrl { get; set; }
+
+		/// <summary>
 		/// Gets the ID of the metadata item name the album is sorted by. Maps to <see cref="Business.Metadata.MetadataItemName" />.
 		/// </summary>
 		public int SortById { get; set; }
@@ -90,11 +96,6 @@ namespace GalleryServerPro.Web.Entity
 		/// Gets a summarized view of all items in this album. Includes both albums and media objects.
 		/// </summary>
 		public GalleryItem[] GalleryItems { get; set; }
-	
-		/// <summary>
-		/// Gets the child albums in the album.
-		/// </summary>
-		public Album[] Albums { get; set; }
 
 		/// <summary>
 		/// Gets the media objects in the album (excludes albums).

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,6 @@ using GalleryServerPro.Business.Metadata;
 using GalleryServerPro.Business.NullObjects;
 using GalleryServerPro.Events.CustomExceptions;
 using GalleryServerPro.Web.Entity;
-using DisplayObject = GalleryServerPro.Web.Entity.DisplayObject;
 
 namespace GalleryServerPro.Web.Controller
 {
@@ -171,23 +171,23 @@ namespace GalleryServerPro.Web.Controller
 			return ToGalleryItems(galleryObjects).AsQueryable();
 		}
 
-		public static IQueryable<GalleryItem> GetGalleryItemsHavingTags(string[] tags, string[] people, int galleryId, MetadataItemName sortByMetaName, bool sortAscending)
-		{
-			IAlbum album = GetGalleryObjectsHavingTags(tags, people, galleryId);
+		//public static IQueryable<GalleryItem> GetGalleryItemsHavingTags(string[] tags, string[] people, int galleryId, MetadataItemName sortByMetaName, bool sortAscending, GalleryObjectType filter)
+		//{
+		//	IAlbum album = GetGalleryObjectsHavingTags(tags, people, filter, galleryId);
 
-			IList<IGalleryObject> galleryObjects;
+		//	IList<IGalleryObject> galleryObjects;
 
-			if (MetadataItemNameEnumHelper.IsValidFormattedMetadataItemName(sortByMetaName))
-			{
-				galleryObjects = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).ToSortedList(sortByMetaName, sortAscending, album.GalleryId);
-			}
-			else
-			{
-				galleryObjects = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).ToSortedList();
-			}
+		//	if (MetadataItemNameEnumHelper.IsValidFormattedMetadataItemName(sortByMetaName))
+		//	{
+		//		galleryObjects = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).ToSortedList(sortByMetaName, sortAscending, album.GalleryId);
+		//	}
+		//	else
+		//	{
+		//		galleryObjects = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).ToSortedList();
+		//	}
 
-			return ToGalleryItems(galleryObjects).AsQueryable();
-		}
+		//	return ToGalleryItems(galleryObjects).AsQueryable();
+		//}
 
 		/// <summary>
 		/// Return a virtual album containing gallery objects whose title or caption contain the specified search strings and
@@ -195,12 +195,14 @@ namespace GalleryServerPro.Web.Controller
 		/// object is considered a match when all search terms are found in the relevant fields.
 		/// </summary>
 		/// <param name="searchStrings">The strings to search for.</param>
+		/// <param name="filter">A filter that limits the types of gallery objects that are returned.
+		/// Maps to the <see cref="GalleryObjectType" /> enumeration.</param>
 		/// <param name="galleryId">The ID for the gallery containing the objects to search.</param>
 		/// <returns>
 		/// Returns an <see cref="IAlbum" /> containing the matching items. This may include albums and media
 		/// objects from different albums.
 		/// </returns>
-		public static IAlbum GetGalleryObjectsHavingTitleOrCaption(string[] searchStrings, int galleryId)
+		public static IAlbum GetGalleryObjectsHavingTitleOrCaption(string[] searchStrings, GalleryObjectType filter, int galleryId)
 		{
 			if (searchStrings == null)
 				throw new ArgumentNullException();
@@ -208,7 +210,7 @@ namespace GalleryServerPro.Web.Controller
 			var tmpAlbum = Factory.CreateEmptyAlbumInstance(galleryId);
 			tmpAlbum.IsVirtualAlbum = true;
 			tmpAlbum.VirtualAlbumType = VirtualAlbumType.TitleOrCaption;
-			tmpAlbum.Title = String.Concat("Search results for ", String.Join(" AND ", searchStrings));
+			tmpAlbum.Title = String.Concat(Resources.GalleryServerPro.Site_Search_Title, String.Join(Resources.GalleryServerPro.Site_Search_Concat, searchStrings));
 			tmpAlbum.Caption = String.Empty;
 
 			var searchOptions = new GalleryObjectSearchOptions
@@ -217,7 +219,8 @@ namespace GalleryServerPro.Web.Controller
 				SearchType = GalleryObjectSearchType.SearchByTitleOrCaption,
 				SearchTerms = searchStrings,
 				IsUserAuthenticated = Utils.IsAuthenticated,
-				Roles = RoleController.GetGalleryServerRolesForUser()
+				Roles = RoleController.GetGalleryServerRolesForUser(),
+				Filter = filter
 			};
 
 			var searcher = new GalleryObjectSearcher(searchOptions);
@@ -236,12 +239,14 @@ namespace GalleryServerPro.Web.Controller
 		/// object is considered a match when all search terms are found in the relevant fields.
 		/// </summary>
 		/// <param name="searchStrings">The strings to search for.</param>
+		/// <param name="filter">A filter that limits the types of gallery objects that are returned.
+		/// Maps to the <see cref="GalleryObjectType" /> enumeration.</param>
 		/// <param name="galleryId">The ID for the gallery containing the objects to search.</param>
 		/// <returns>
 		/// Returns an <see cref="IAlbum" /> containing the matching items. This may include albums and media
 		/// objects from different albums.
 		/// </returns>
-		public static IAlbum GetGalleryObjectsHavingSearchString(string[] searchStrings, int galleryId)
+		public static IAlbum GetGalleryObjectsHavingSearchString(string[] searchStrings, GalleryObjectType filter, int galleryId)
 		{
 			if (searchStrings == null)
 				throw new ArgumentNullException();
@@ -249,7 +254,7 @@ namespace GalleryServerPro.Web.Controller
 			var tmpAlbum = Factory.CreateEmptyAlbumInstance(galleryId);
 			tmpAlbum.IsVirtualAlbum = true;
 			tmpAlbum.VirtualAlbumType = VirtualAlbumType.Search;
-			tmpAlbum.Title = String.Concat("Search results for ", String.Join(" AND ", searchStrings));
+			tmpAlbum.Title = String.Concat(Resources.GalleryServerPro.Site_Search_Title, String.Join(Resources.GalleryServerPro.Site_Search_Concat, searchStrings));
 			tmpAlbum.Caption = String.Empty;
 
 			var searchOptions = new GalleryObjectSearchOptions
@@ -258,7 +263,8 @@ namespace GalleryServerPro.Web.Controller
 				SearchType = GalleryObjectSearchType.SearchByKeyword,
 				SearchTerms = searchStrings,
 				IsUserAuthenticated = Utils.IsAuthenticated,
-				Roles = RoleController.GetGalleryServerRolesForUser()
+				Roles = RoleController.GetGalleryServerRolesForUser(),
+				Filter = filter
 			};
 
 			var searcher = new GalleryObjectSearcher(searchOptions);
@@ -273,18 +279,20 @@ namespace GalleryServerPro.Web.Controller
 
 		/// <summary>
 		/// Gets a virtual album containing gallery objects that match the specified <paramref name="tags" /> or <paramref name="people" />
-		/// belonging to the specifed <paramref name="galleryId" />. Guaranteed to not return null. The returned album 
+		/// belonging to the specified <paramref name="galleryId" />. Guaranteed to not return null. The returned album 
 		/// is a virtual one (<see cref="IAlbum.IsVirtualAlbum" />=<c>true</c>) containing the collection of matching 
 		/// items the current user has permission to view. Returns an empty album when no matches are found or the 
 		/// query string does not contain the search terms.
 		/// </summary>
 		/// <param name="tags">The tags to search for. If specified, the <paramref name="people" /> parameter must be null.</param>
 		/// <param name="people">The people to search for. If specified, the <paramref name="tags" /> parameter must be null.</param>
+		/// <param name="filter">A filter that limits the types of gallery objects that are returned.
+		/// Maps to the <see cref="GalleryObjectType" /> enumeration.</param>
 		/// <param name="galleryId">The ID of the gallery. Only objects in this gallery are returned.</param>
 		/// <returns>An instance of <see cref="IAlbum" />.</returns>
 		/// <exception cref="System.ArgumentException">Throw when the tags and people parameters are both null or empty, or both
 		/// have values.</exception>
-		public static IAlbum GetGalleryObjectsHavingTags(string[] tags, string[] people, int galleryId)
+		public static IAlbum GetGalleryObjectsHavingTags(string[] tags, string[] people, GalleryObjectType filter, int galleryId)
 		{
 			if (((tags == null) || (tags.Length == 0)) && ((people == null) || (people.Length == 0)))
 				throw new ArgumentException("GalleryObjectController.GetGalleryObjectsHavingTags() requires the tags or people parameters to be specified, but they were both null or empty.");
@@ -292,14 +300,13 @@ namespace GalleryServerPro.Web.Controller
 			if ((tags != null) && (tags.Length > 0) && (people != null) && (people.Length > 0))
 				throw new ArgumentException("GalleryObjectController.GetGalleryObjectsHavingTags() requires EITHER the tags or people parameters to be specified, but not both. Instead, they were both populated.");
 
-			//var tags = Utils.GetQueryStringParameterStrings("tag") ?? Utils.GetQueryStringParameterStrings("people");
 			var searchType = (tags != null && tags.Length > 0 ? GalleryObjectSearchType.SearchByTag : GalleryObjectSearchType.SearchByPeople);
 			var searchTags = (searchType == GalleryObjectSearchType.SearchByTag ? tags : people);
 
 			var tmpAlbum = Factory.CreateEmptyAlbumInstance(galleryId);
 			tmpAlbum.IsVirtualAlbum = true;
 			tmpAlbum.VirtualAlbumType = (searchType == GalleryObjectSearchType.SearchByTag ? VirtualAlbumType.Tag : VirtualAlbumType.People);
-			tmpAlbum.Title = String.Concat("Items tagged with ", String.Join(" AND ", searchTags));
+			tmpAlbum.Title = String.Concat(Resources.GalleryServerPro.Site_Tag_Title, String.Join(Resources.GalleryServerPro.Site_Search_Concat, searchTags));
 			tmpAlbum.Caption = String.Empty;
 
 			var searcher = new GalleryObjectSearcher(new GalleryObjectSearchOptions
@@ -308,7 +315,98 @@ namespace GalleryServerPro.Web.Controller
 				Tags = searchTags,
 				GalleryId = galleryId,
 				Roles = RoleController.GetGalleryServerRolesForUser(),
-				IsUserAuthenticated = Utils.IsAuthenticated
+				IsUserAuthenticated = Utils.IsAuthenticated,
+				Filter = filter
+			});
+
+			foreach (var galleryObject in searcher.Find())
+			{
+				tmpAlbum.AddGalleryObject(galleryObject);
+			}
+
+			return tmpAlbum;
+		}
+
+		/// <summary>
+		/// Gets the gallery objects most recently added to the gallery having <paramref name="galleryId" />.
+		/// </summary>
+		/// <param name="top">The maximum number of results to return. Must be greater than zero.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="filter">A filter that limits the types of gallery objects that are returned.</param>
+		/// <returns>An instance of <see cref="IAlbum" />.</returns>
+		/// <exception cref="ArgumentException">Thrown when <paramref name="top" /> is less than or equal to zero.</exception>
+		public static IAlbum GetMostRecentlyAddedGalleryObjects(int top, int galleryId, GalleryObjectType filter)
+		{
+			if (top <= 0)
+				throw new ArgumentException("The top parameter must contain a number greater than zero.", "top");
+
+			var tmpAlbum = Factory.CreateEmptyAlbumInstance(galleryId);
+
+			tmpAlbum.IsVirtualAlbum = true;
+			tmpAlbum.VirtualAlbumType = VirtualAlbumType.MostRecentlyAdded;
+			tmpAlbum.Title = Resources.GalleryServerPro.Site_Recently_Added_Title;
+			tmpAlbum.Caption = String.Empty;
+			tmpAlbum.SortByMetaName = MetadataItemName.DateAdded;
+			tmpAlbum.SortAscending = false;
+
+			var searcher = new GalleryObjectSearcher(new GalleryObjectSearchOptions
+			{
+				SearchType = GalleryObjectSearchType.MostRecentlyAdded,
+				GalleryId = galleryId,
+				Roles = RoleController.GetGalleryServerRolesForUser(),
+				IsUserAuthenticated = Utils.IsAuthenticated,
+				MaxNumberResults = top,
+				Filter = filter
+			});
+
+			foreach (var galleryObject in searcher.Find())
+			{
+				tmpAlbum.AddGalleryObject(galleryObject);
+			}
+
+			return tmpAlbum;
+		}
+
+		/// <summary>
+		/// Gets the media objects having the specified <paramref name="rating" /> and belonging to the
+		/// <paramref name="galleryId" />.
+		/// </summary>
+		/// <param name="rating">Identifies the type of rating to retrieve. Valid values: "highest", "lowest", "none", or a number
+		/// from 0 to 5 in half-step increments (eg. 0, 0.5, 1, 1.5, ... 4.5, 5).</param>
+		/// <param name="top">The maximum number of results to return. Must be greater than zero.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="filter">A filter that limits the types of gallery objects that are returned.</param>
+		/// <returns>An instance of <see cref="IAlbum" />.</returns>
+		/// <exception cref="ArgumentException">Thrown when <paramref name="top" /> is less than or equal to zero.</exception>
+		public static IAlbum GetRatedMediaObjects(string rating, int top, int galleryId, GalleryObjectType filter)
+		{
+			if (top <= 0)
+				throw new ArgumentException("The top parameter must contain a number greater than zero.", "top");
+
+			var tmpAlbum = Factory.CreateEmptyAlbumInstance(galleryId);
+
+			tmpAlbum.IsVirtualAlbum = true;
+			tmpAlbum.VirtualAlbumType = VirtualAlbumType.Rated;
+			tmpAlbum.Title = GetRatedAlbumTitle(rating);
+			tmpAlbum.Caption = String.Empty;
+
+			var ratingSortTrigger = new[] {"lowest", "highest"};
+			if (ratingSortTrigger.Contains(rating))
+			{
+				// Sort on rating field for lowest or highest. All others use the default album sort setting.
+				tmpAlbum.SortByMetaName = MetadataItemName.Rating;
+				tmpAlbum.SortAscending = !rating.Equals("highest", StringComparison.OrdinalIgnoreCase);
+			}
+
+			var searcher = new GalleryObjectSearcher(new GalleryObjectSearchOptions
+			{
+				SearchType = GalleryObjectSearchType.SearchByRating,
+				SearchTerms = new [] { rating },
+				GalleryId = galleryId,
+				Roles = RoleController.GetGalleryServerRolesForUser(),
+				IsUserAuthenticated = Utils.IsAuthenticated,
+				MaxNumberResults = top,
+				Filter = filter
 			});
 
 			foreach (var galleryObject in searcher.Find())
@@ -498,9 +596,8 @@ namespace GalleryServerPro.Web.Controller
 				throw new ArgumentNullException("galleryObjects");
 
 			var gEntities = new List<GalleryItem>(galleryObjects.Count);
-			Array browsers = Utils.GetBrowserIdsForCurrentRequest();
 
-			gEntities.AddRange(galleryObjects.Select(galleryObject => ToGalleryItem(galleryObject, browsers)));
+			gEntities.AddRange(galleryObjects.Select(galleryObject => ToGalleryItem(galleryObject, MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(galleryObject))));
 
 			return gEntities.ToArray();
 		}
@@ -519,11 +616,10 @@ namespace GalleryServerPro.Web.Controller
 				throw new ArgumentNullException("mediaObjects");
 
 			var moEntities = new List<MediaItem>(mediaObjects.Count);
-
-			Array browsers = Utils.GetBrowserIdsForCurrentRequest();
+			var moBuilderOptions = MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(null);
 
 			var i = 1;
-			moEntities.AddRange(mediaObjects.Select(mo => ToMediaItem(mo, i++, browsers)));
+			moEntities.AddRange(mediaObjects.Select(mo => ToMediaItem(mo, i++, moBuilderOptions)));
 
 			return moEntities.ToArray();
 		}
@@ -534,35 +630,33 @@ namespace GalleryServerPro.Web.Controller
 		/// </summary>
 		/// <param name="galleryObject">The gallery object to convert to an instance of
 		/// <see cref="Entity.GalleryItem" />. It may be a media object or album.</param>
-		/// <param name="browsers">An <see cref="System.Array"/> of browser ids for the current browser. This
-		/// is a list of strings that represent the various categories of browsers the current browser belongs
-		/// to. This is typically populated by calling ToArray() on the Request.Browser.Browsers property.
-		/// If set to null, the property is automatically populated.</param>
-		/// <returns>
-		/// Returns an <see cref="Entity.GalleryItem" /> object containing information
-		/// about the requested item.
-		/// </returns>
+		/// <param name="moBuilderOptions">A set of properties to be used to build the HTML, JavaScript or URL for the 
+		/// <paramref name="galleryObject" />.</param>
+		/// <returns>Returns an <see cref="Entity.GalleryItem" /> object containing information
+		/// about the requested item.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="galleryObject" /> or 
-		/// <paramref name="browsers" /> is null.</exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when <paramref name="browsers" /> does
-		/// not contain any elements.</exception>
-		public static GalleryItem ToGalleryItem(IGalleryObject galleryObject, Array browsers)
+		/// <paramref name="moBuilderOptions" /> is null.</exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when <paramref name="moBuilderOptions" /> does
+		/// has a null or empty <see cref="MediaObjectHtmlBuilderOptions.Browsers" /> property.</exception>
+		public static GalleryItem ToGalleryItem(IGalleryObject galleryObject, MediaObjectHtmlBuilderOptions moBuilderOptions)
 		{
 			if (galleryObject == null)
 				throw new ArgumentNullException("galleryObject");
 
-			if (browsers == null)
-				throw new ArgumentNullException("browsers");
+			if (moBuilderOptions == null)
+				throw new ArgumentNullException("moBuilderOptions");
 
-			if (browsers.Length == 0)
-				throw new ArgumentOutOfRangeException("browsers", "The browsers array parameter must have at least one element.");
+			if (moBuilderOptions.Browsers == null || moBuilderOptions.Browsers.Length == 0)
+				throw new ArgumentOutOfRangeException("moBuilderOptions.Browsers", "The Browsers array property must have at least one element.");
+
+			moBuilderOptions.GalleryObject = galleryObject;
 
 			var gItem = new GalleryItem
 										{
 											Id = galleryObject.Id,
 											Title = galleryObject.Title,
 											Caption = galleryObject.Caption,
-											Views = GetViews(galleryObject, browsers).ToArray(),
+											Views = GetViews(moBuilderOptions).ToArray(),
 											ViewIndex = 0,
 											MimeType = (int)galleryObject.MimeType.TypeCategory,
 											ItemType = (int)galleryObject.GalleryObjectType
@@ -591,28 +685,26 @@ namespace GalleryServerPro.Web.Controller
 		/// <see cref="Entity.MediaItem"/>.</param>
 		/// <param name="indexInAlbum">The one-based index of this media object within its album. This value is assigned to 
 		/// <see cref="Entity.MediaItem.Index" />.</param>
-		/// <param name="browsers">An <see cref="System.Array"/> of browser ids for the current browser. This
-		/// is a list of strings that represent the various categories of browsers the current browser belongs
-		/// to. This is typically populated by calling ToArray() on the Request.Browser.Browsers property.
-		/// If set to null, the property is automatically populated.</param>
-		/// <returns>
-		/// Returns an <see cref="Entity.MediaItem"/> object containing information
-		/// about the requested media object.
-		/// </returns>
+		/// <param name="moBuilderOptions">A set of properties to be used to build the HTML, JavaScript or URL for the 
+		/// <paramref name="mediaObject" />.</param>
+		/// <returns>Returns an <see cref="Entity.MediaItem"/> object containing information
+		/// about the requested media object.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="mediaObject" /> or 
-		/// <paramref name="browsers" /> is null.</exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when <paramref name="browsers" /> does
-		/// not contain any elements.</exception>
-		public static MediaItem ToMediaItem(IGalleryObject mediaObject, int indexInAlbum, Array browsers)
+		/// <paramref name="moBuilderOptions" /> is null.</exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when <paramref name="moBuilderOptions" /> does
+		/// has a null or empty <see cref="MediaObjectHtmlBuilderOptions.Browsers" /> property.</exception>
+		public static MediaItem ToMediaItem(IGalleryObject mediaObject, int indexInAlbum, MediaObjectHtmlBuilderOptions moBuilderOptions)
 		{
 			if (mediaObject == null)
 				throw new ArgumentNullException("mediaObject");
 
-			if (browsers == null)
-				throw new ArgumentNullException("browsers");
+			if (moBuilderOptions == null)
+				throw new ArgumentNullException("moBuilderOptions");
 
-			if (browsers.Length == 0)
-				throw new ArgumentOutOfRangeException("browsers", "The browsers array parameter must have at least one element.");
+			if (moBuilderOptions.Browsers == null || moBuilderOptions.Browsers.Length == 0)
+				throw new ArgumentOutOfRangeException("moBuilderOptions.Browsers", "The Browsers array property must have at least one element.");
+
+			moBuilderOptions.GalleryObject = mediaObject;
 
 			var isBeingProcessed = MediaConversionQueue.Instance.IsWaitingInQueueOrProcessing(mediaObject.Id, MediaQueueItemConversionType.CreateOptimized);
 
@@ -623,7 +715,7 @@ namespace GalleryServerPro.Web.Controller
 												 AlbumTitle = mediaObject.Parent.Title,
 												 Index = indexInAlbum,
 												 Title = mediaObject.Title,
-												 Views = GetViews(mediaObject, browsers).ToArray(),
+												 Views = GetViews(moBuilderOptions).ToArray(),
 												 HighResAvailable = isBeingProcessed || (!String.IsNullOrEmpty(mediaObject.Optimized.FileName)) && (mediaObject.Original.FileName != mediaObject.Optimized.FileName),
 												 IsDownloadable = !(mediaObject is ExternalMediaObject),
 												 MimeType = (int)mediaObject.MimeType.TypeCategory,
@@ -802,6 +894,9 @@ namespace GalleryServerPro.Web.Controller
 			if (galleryObject == null)
 				throw new ArgumentNullException("galleryObject");
 
+			if (galleryObject.GalleryObjectType == GalleryObjectType.Album)
+				return false;
+
 			bool inQueue = MediaConversionQueue.Instance.IsWaitingInQueueOrProcessing(galleryObject.Id, MediaQueueItemConversionType.CreateOptimized);
 			bool hasOptFile = !String.IsNullOrEmpty(galleryObject.Optimized.FileName);
 			bool optFileDifferentThanOriginal = (galleryObject.Optimized.FileName != galleryObject.Original.FileName);
@@ -827,57 +922,62 @@ namespace GalleryServerPro.Web.Controller
 		}
 
 		/// <summary>
-		/// Gets a collection of views for the <paramref name="galleryObject" />.
+		/// Gets a collection of views corresponding to the gallery object and other specs in <paramref name="moBuilderOptions" />.
 		/// </summary>
-		/// <param name="galleryObject">The gallery object. May be an album or media object.</param>
-		/// <param name="browsers">An <see cref="System.Array"/> of browser ids for the current browser. This
-		/// is a list of strings that represent the various categories of browsers the current browser belongs
-		/// to. This is typically populated by calling ToArray() on the Request.Browser.Browsers property.</param>
+		/// <param name="moBuilderOptions">A set of properties to be used when building the output.</param>
 		/// <returns>Returns a collection of <see cref="Entity.DisplayObject" /> instances.</returns>
-		private static List<DisplayObject> GetViews(IGalleryObject galleryObject, Array browsers)
+		private static List<Entity.DisplayObject> GetViews(MediaObjectHtmlBuilderOptions moBuilderOptions)
 		{
-			var views = new List<DisplayObject>(3);
+			var views = new List<Entity.DisplayObject>(3);
 
-			IMediaObjectHtmlBuilder moBuilder = new MediaObjectHtmlBuilder(galleryObject, galleryObject.Thumbnail, browsers);
-			views.Add(new DisplayObject
+			moBuilderOptions.DisplayType = DisplayObjectType.Thumbnail;
+
+			var moBuilder = new MediaObjectHtmlBuilder(moBuilderOptions);
+
+			views.Add(new Entity.DisplayObject
 			{
-				ViewSize = (int)moBuilder.DisplayType,
+				ViewSize = (int)DisplayObjectType.Thumbnail,
 				ViewType = (int)moBuilder.MimeType.TypeCategory,
 				HtmlOutput = moBuilder.GenerateHtml(),
 				ScriptOutput = moBuilder.GenerateScript(),
 				Width = moBuilder.Width,
 				Height = moBuilder.Height,
-				Url = moBuilder.GenerateUrl()
+				Url = moBuilder.GetMediaObjectUrl()
 			});
 
-			if (HasOptimizedVersion(galleryObject))
+			if (HasOptimizedVersion(moBuilderOptions.GalleryObject))
 			{
-				moBuilder = new MediaObjectHtmlBuilder(galleryObject, galleryObject.Optimized, browsers);
-				DisplayObject optimizedDisplayObject = new DisplayObject
+				moBuilderOptions.DisplayType = DisplayObjectType.Optimized;
+
+				moBuilder = new MediaObjectHtmlBuilder(moBuilderOptions);
+
+				views.Add(new Entity.DisplayObject
 				{
-					ViewSize = (int)moBuilder.DisplayType,
+					ViewSize = (int)DisplayObjectType.Optimized,
 					ViewType = (int)moBuilder.MimeType.TypeCategory,
 					HtmlOutput = moBuilder.GenerateHtml(),
 					ScriptOutput = moBuilder.GenerateScript(),
 					Width = moBuilder.Width,
 					Height = moBuilder.Height,
-					Url = moBuilder.GenerateUrl()
-				};
-				views.Add(optimizedDisplayObject);
+					Url = moBuilder.GetMediaObjectUrl()
+				});
 			}
 
-			if (HasOriginalVersion(galleryObject))
+			if (HasOriginalVersion(moBuilderOptions.GalleryObject))
 			{
-				moBuilder = new MediaObjectHtmlBuilder(galleryObject, galleryObject.Original, browsers);
-				views.Add(new DisplayObject
+				moBuilderOptions.DisplayType = moBuilderOptions.GalleryObject.Original.DisplayType; // May be Original or External
+
+				moBuilder = new MediaObjectHtmlBuilder(moBuilderOptions);
+
+				views.Add(new Entity.DisplayObject
 				{
-					ViewSize = (int)moBuilder.DisplayType,
+					ViewSize = (int)DisplayObjectType.Original,
 					ViewType = (int)moBuilder.MimeType.TypeCategory,
 					HtmlOutput = moBuilder.GenerateHtml(),
 					ScriptOutput = moBuilder.GenerateScript(),
 					Width = moBuilder.Width,
 					Height = moBuilder.Height,
-					Url = moBuilder.GenerateUrl()
+					Url = moBuilder.GetMediaObjectUrl()
 				});
 			}
 
@@ -911,6 +1011,26 @@ namespace GalleryServerPro.Web.Controller
 			}
 
 			ProfileController.SaveProfile(profile);
+		}
+
+		/// <summary>
+		/// Gets the title for the album that is appropriate for the specified <paramref name="rating" />.
+		/// </summary>
+		/// <param name="rating">The rating. Valid values include "highest", "lowest", "none", or a decimal.</param>
+		/// <returns>System.String.</returns>
+		private static string GetRatedAlbumTitle(string rating)
+		{
+			switch (rating.ToLowerInvariant())
+			{
+				case "highest":
+					return Resources.GalleryServerPro.Site_Highest_Rated_Title; // "Highest rated items"
+				case "lowest":
+					return Resources.GalleryServerPro.Site_Lowest_Rated_Title; // "Lowest rated items"
+				case "none":
+					return Resources.GalleryServerPro.Site_None_Rated_Title; // "Items without a rating"
+				default:
+					return String.Format(CultureInfo.InvariantCulture, Resources.GalleryServerPro.Site_Rated_Title, rating); // "Items with a rating of 3"
+			}
 		}
 
 		#endregion

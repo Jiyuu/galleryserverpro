@@ -92,13 +92,13 @@ namespace GalleryServerPro.Web.Pages.Admin
 
 			CurrentUiTemplate = GetSelectedJQueryTemplate();
 
-			BindJQueryTemplate();
+			BindUiTemplate();
 		}
 
 		protected void ddlTemplateName_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			CurrentUiTemplate = GetSelectedJQueryTemplate();
-			BindJQueryTemplate();
+			BindUiTemplate();
 		}
 
 		protected void lbCreate_Click(object sender, EventArgs e)
@@ -116,7 +116,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 
 			btnDelete.Enabled = false;
 
-			BindJQueryTemplate();
+			BindUiTemplate();
 		}
 
 		protected void btnSave_Click(object sender, EventArgs e)
@@ -157,7 +157,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 				BindTemplateNameDropDownList();
 
 			CurrentUiTemplate = GetSelectedJQueryTemplate();
-			BindJQueryTemplate();
+			BindUiTemplate();
 			ViewMode = PageMode.Edit;
 		}
 
@@ -171,7 +171,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 				CurrentUiTemplate.Delete();
 				BindTemplateNameDropDownList();
 				CurrentUiTemplate = GetSelectedJQueryTemplate();
-				BindJQueryTemplate();
+				BindUiTemplate();
 				ViewMode = PageMode.Edit;
 
 				ClientMessage = new ClientMessageOptions
@@ -217,7 +217,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 
 			BindDropDownLists();
 
-			BindJQueryTemplate();
+			BindUiTemplate();
 
 			AdminPageTitle = Resources.GalleryServerPro.Admin_UiTemplates_Page_Header;
 
@@ -327,14 +327,12 @@ namespace GalleryServerPro.Web.Pages.Admin
 		/// <summary>
 		/// Copies the data from <see cref="CurrentUiTemplate" /> to the relevant web form controls.
 		/// </summary>
-		private void BindJQueryTemplate()
+		private void BindUiTemplate()
 		{
 			txtTemplateName.Text = CurrentUiTemplate.Name;
 			txtTemplate.Text = CurrentUiTemplate.HtmlTemplate;
 			txtScript.Text = CurrentUiTemplate.ScriptTemplate;
 			tvUC.SelectedAlbumIds = CurrentUiTemplate.RootAlbumIds;
-
-			//btnSave.Enabled = btnDelete.Enabled = btnCancel.Enabled = txtTemplateName.Enabled = txtTemplate.Enabled = (!CurrentJQueryTemplate.Name.Equals("Default", StringComparison.OrdinalIgnoreCase));
 		}
 
 		/// <summary>
@@ -383,7 +381,20 @@ namespace GalleryServerPro.Web.Pages.Admin
 		/// <returns><c>true</c> if business rules for saving are satisfied, <c>false</c> otherwise</returns>
 		private bool ValidateUiTemplateBeforeSave(out string invalidReason)
 		{
-			// TEST 1: Verify no other template has the same name in this category.
+			// TEST 1: Cannot save changes to the default template.
+			if (CurrentUiTemplate.Name.Equals("Default", StringComparison.OrdinalIgnoreCase))
+			{
+				var htmlHasChanged = !CurrentUiTemplate.HtmlTemplate.Equals(txtTemplate.Text, StringComparison.Ordinal);
+				var scriptHasChanged = !CurrentUiTemplate.ScriptTemplate.Equals(txtScript.Text, StringComparison.Ordinal);
+
+				if (htmlHasChanged || scriptHasChanged)
+				{
+					invalidReason = Resources.GalleryServerPro.Admin_Templates_Cannot_Modify_Default_Tmpl_Msg;
+					return false;
+				}
+			}
+
+			// TEST 2: Verify no other template has the same name in this category.
 			var tmpl = (from t in UiTemplates
 									where t.TemplateType == CurrentUiTemplate.TemplateType &&
 									t.GalleryId == GalleryId &&
@@ -397,7 +408,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 				return false;
 			}
 
-			// TEST 2: Verify user isn't removing the last template from the root album.
+			// TEST 3: Verify user isn't removing the last template from the root album.
 			var rootAlbumId = Factory.LoadRootAlbumInstance(GalleryId).Id;
 
 			var curTmplNotAssignedToRootAlbum = !tvUC.SelectedAlbumIds.Contains(rootAlbumId); // Need to use tvUC.SelectedAlbumIds instead of CurrentUiTemplate.RootAlbumIds because CurrentUiTemplate has not yet been unbound
@@ -409,7 +420,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 				return false;
 			}
 
-			// TEST 3: The default template cannot be renamed to something else.
+			// TEST 4: The default template cannot be renamed to something else.
 			if (CurrentUiTemplate.Name.Equals("Default", StringComparison.OrdinalIgnoreCase) && !txtTemplateName.Text.Equals("Default", StringComparison.OrdinalIgnoreCase))
 			{
 				invalidReason = Resources.GalleryServerPro.Admin_Templates_Cannot_Save_No_Default_Tmpl_Msg;
@@ -432,7 +443,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 			// TEST 1: Cannot delete the default template.
 			if (CurrentUiTemplate.Name.Equals("Default", StringComparison.OrdinalIgnoreCase))
 			{
-				invalidReason = Resources.GalleryServerPro.Admin_Templates_Cannot_Delete_Default_Tmpl_Msg;
+				invalidReason = Resources.GalleryServerPro.Admin_Templates_Cannot_Modify_Default_Tmpl_Msg;
 				return false;
 			}
 

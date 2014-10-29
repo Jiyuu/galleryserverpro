@@ -481,6 +481,12 @@ namespace GalleryServerPro.Business
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the feed formatter options. This property is used when generating an RSS/Atom feed.
+		/// </summary>
+		/// <value>The feed formatter options.</value>
+		public IFeedFormatterOptions FeedFormatterOptions { get; set; }
+
 		#endregion
 
 		#region Override Properties

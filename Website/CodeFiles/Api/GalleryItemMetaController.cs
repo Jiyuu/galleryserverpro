@@ -48,6 +48,32 @@ namespace GalleryServerPro.Web.Api
 		}
 
 		/// <summary>
+		/// Gets a value indicating whether the logged-on user has edit permission for all of the <paramref name="galleryItems" />.
+		/// </summary>
+		/// <param name="galleryItems">A collection of <see cref="Entity.GalleryItem" /> instances.</param>
+		/// <returns><c>true</c> if the current user can edit the items; <c>false</c> otherwise.</returns>
+		/// <exception cref="System.Web.Http.HttpResponseException"></exception>
+		[HttpPost]
+		public bool CanUserEdit(System.Collections.Generic.IEnumerable<Entity.GalleryItem> galleryItems)
+		{
+			// POST /api/meta/canuseredit
+			try
+			{
+				return MetadataController.CanUserEditAllItems(galleryItems);
+			}
+			catch (Exception ex)
+			{
+				AppEventController.LogError(ex);
+
+				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+				{
+					Content = Utils.GetExStringContent(ex),
+					ReasonPhrase = "Server Error"
+				});
+			}
+		}
+
+		/// <summary>
 		/// Updates the gallery items with the specified metadata value. <see cref="Entity.GalleryItemMeta.ActionResult" />
 		/// contains details about the success or failure of the operation.
 		/// </summary>

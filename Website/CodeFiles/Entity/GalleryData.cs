@@ -32,9 +32,9 @@ namespace GalleryServerPro.Web.Entity
 		public User User { get; set; }
 
 		/// <summary>
-		/// Gets information about an album. Child properties <see cref="Entity.Album.Albums" />, 
-		/// <see cref="Entity.Album.GalleryItems" />, and <see cref="Entity.Album.MediaItems" /> may 
-		/// be null in certain situations to keep the object size as small as possible.
+		/// Gets information about an album. Child properties <see cref="Entity.Album.GalleryItems" />
+		/// and <see cref="Entity.Album.MediaItems" /> may be null in certain situations to keep the 
+		/// object size as small as possible.
 		/// </summary>
 		/// <value>
 		/// An instance of <see cref="Album" />.
@@ -83,20 +83,27 @@ namespace GalleryServerPro.Web.Entity
 		public bool LoadGalleryItems;
 
 		/// <summary>
-		/// Specifies that <see cref="Album.Albums" /> should be populated with the albums
-		/// belonging to the album.
-		/// </summary>
-		public bool LoadChildAlbums;
-
-		/// <summary>
 		/// Specifies that <see cref="Album.MediaItems" /> should be populated with the media objects
 		/// belonging to the album.
 		/// </summary>
 		public bool LoadMediaItems;
 
-		public int NumAlbumsToRetrieve;
+		/// <summary>
+		/// Specifies the number of gallery items to retrieve. A value of zero (the default) or less indicates all items are to be retrieved.
+		/// </summary>
+		public int NumGalleryItemsToRetrieve;
 
-		public int NumAlbumsToSkip;
+		/// <summary>
+		/// Specifies the number of gallery items to skip. Use this property along with <see cref="NumGalleryItemsToRetrieve" />
+		/// to support paged results.
+		/// </summary>
+		public int NumGalleryItemsToSkip;
+
+		/// <summary>
+		/// A filter specifying the type of gallery objects to load. Defaults to
+		/// <see cref="Business.GalleryObjectType.All" /> when not specified.
+		/// </summary>
+		public Business.GalleryObjectType Filter = Business.GalleryObjectType.All;
 	}
 }
 

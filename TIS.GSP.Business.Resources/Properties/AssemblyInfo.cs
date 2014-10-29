@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Tech Info Systems, LLC")]
 [assembly: AssemblyProduct("Gallery Server Pro")]
-[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2012")]
+[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: CLSCompliant(true)]
 

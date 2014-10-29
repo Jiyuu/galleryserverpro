@@ -570,14 +570,14 @@ namespace GalleryServerPro.Web
 			return resource;
 		}
 
-		/// <overloads>Get an URL relative to the application root for the requested page.</overloads>
+		/// <overloads>Get an URL relative to the website root for the requested page.</overloads>
 		/// <summary>
-		/// Get an URL relative to the application root for the requested <paramref name="page"/>. Example: If 
+		/// Get an URL relative to the website root for the requested <paramref name="page"/>. Example: If 
 		/// <paramref name="page"/> is PageId.album and the current page is /dev/gs/gallery.aspx, this function 
 		/// returns /dev/gs/gallery.aspx?g=album. Returns null if <see cref="HttpContext.Current" /> is null.
 		/// </summary>
 		/// <param name="page">A <see cref="PageId"/> enumeration that represents the desired <see cref="GalleryPage"/>.</param>
-		/// <returns>Returns an URL relative to the application root for the requested <paramref name="page"/>, or null 
+		/// <returns>Returns an URL relative to the website root for the requested <paramref name="page"/>, or null 
 		/// if <see cref="HttpContext.Current" /> is null.</returns>
 		public static string GetUrl(PageId page)
 		{
@@ -588,7 +588,7 @@ namespace GalleryServerPro.Web
 		}
 
 		/// <summary>
-		/// Get an URL relative to the application root for the requested <paramref name="page"/> and with the specified 
+		/// Get an URL relative to the website root for the requested <paramref name="page"/> and with the specified 
 		/// <paramref name="args"/> appended as query string parameters. Example: If <paramref name="page"/> is PageId.task_addobjects, 
 		/// the current page is /dev/gs/gallery.aspx, <paramref name="format"/> is "aid={0}", and <paramref name="args"/>
 		/// is "23", this function returns /dev/gs/gallery.aspx?g=task_addobjects&amp;aid=23. If the <paramref name="page"/> is
@@ -599,7 +599,7 @@ namespace GalleryServerPro.Web
 		/// <param name="format">A format string whose placeholders are replaced by values in <paramref name="args"/>. Do not use a '?'
 		/// or '&amp;' at the beginning of the format string. Example: "msg={0}".</param>
 		/// <param name="args">The values to be inserted into the <paramref name="format"/> string.</param>
-		/// <returns>Returns an URL relative to the application root for the requested <paramref name="page"/>, or 
+		/// <returns>Returns an URL relative to the website root for the requested <paramref name="page"/>, or 
 		/// null if <see cref="HttpContext.Current" /> is null.</returns>
 		public static string GetUrl(PageId page, string format, params object[] args)
 		{
@@ -663,13 +663,13 @@ namespace GalleryServerPro.Web
 		}
 
 		/// <summary>
-		/// Gets the URL, relative to the application root and optionally including any query string parameters, to the current page.
+		/// Gets the URL, relative to the website root and optionally including any query string parameters, to the current page.
 		/// This method is a wrapper for a call to HttpContext.Current.Request.Url. If the current URL is an API call (i.e. it starts
 		/// with "~/api", the referrer is used instead. Returns null if <see cref="HttpContext.Current" /> is null.
 		/// Examples: "/dev/gs/gallery.aspx", "/dev/gs/gallery.aspx?g=admin_email&amp;aid=2389" 
 		/// </summary>
 		/// <param name="includeQueryString">When <c>true</c> the query string is included.</param>
-		/// <returns>Returns the URL, relative to the application root and including any query string parameters, to the current page,
+		/// <returns>Returns the URL, relative to the website root and including any query string parameters, to the current page,
 		/// or null if <see cref="HttpContext.Current" /> is null.</returns>
 		public static string GetCurrentPageUrl(bool includeQueryString = false)
 		{
@@ -759,6 +759,32 @@ namespace GalleryServerPro.Web
 		public static string GetAppUrl()
 		{
 			return String.Concat(GetHostUrl(), AppRoot);
+		}
+
+		/// <summary>
+		/// Gets the URL to the list of recently added media objects. Ex: http://site.com/gallery/default.aspx?latest=50
+		/// Requires gallery to be running an Enterprise license; otherwise it returns null.
+		/// </summary>
+		/// <returns>Returns the URL to the recently added media objects.</returns>
+		public static string GetLatestUrl()
+		{
+			if (AppSetting.Instance.License.LicenseType == LicenseLevel.Enterprise)
+				return AddQueryStringParameter(GetCurrentPageUrl(), "latest=50");
+			else
+				return null;
+		}
+
+		/// <summary>
+		/// Gets the URL to the list of top rated media objects. Ex: http://site.com/gallery/default.aspx?latest=50
+		/// Requires gallery to be running an Enterprise license; otherwise it returns null.
+		/// </summary>
+		/// <returns>Returns the URL to the top rated media objects.</returns>
+		public static string GetTopRatedUrl()
+		{
+			if (AppSetting.Instance.License.LicenseType == LicenseLevel.Enterprise)
+				return AddQueryStringParameter(GetCurrentPageUrl(), "rating=highest&top=50");
+			else
+				return null;
 		}
 
 		/// <summary>
@@ -979,24 +1005,36 @@ namespace GalleryServerPro.Web
 		/// <summary>
 		/// Retrieves the specified query string parameter values from the query string as an array. When the query
 		/// string value contains the <paramref name="delimiter" />, the value is split into an array of items.
-		/// Returns null if the parameter is not found. Example: If <paramref name="parameterName" />="tag", 
+		/// Returns null if the parameter is not found. Any leading or trailing apostrophes, quotation marks, or 
+		/// spaces are removed. Example: If <paramref name="parameterName" />="tag", 
 		/// <paramref name="delimiter" />="," and the query string is "tag=misty morning,fox&amp;people=Toby", this method
 		/// returns a string array { "misty morning", "fox" }.
 		/// </summary>
 		/// <param name="parameterName">The name of the query string parameter for which to retrieve it's value.</param>
 		/// <param name="delimiter">The delimiter to separate the query string value by. Default value is '+'.
 		/// To specify '+' delimiter in the query string, it must be encoded as '%2B'.</param>
-		/// <returns>Returns the value of the specified query string parameter.</returns>
+		/// <returns>Returns a string[] representing the value(s) of the specified query string parameter.</returns>
 		/// <remarks>Do not call UrlDecode on the string, as it appears that .NET already does this.</remarks>
 		public static string[] GetQueryStringParameterStrings(string parameterName, char delimiter = '+')
 		{
-			var value = HttpContext.Current.Request.QueryString[parameterName];
+			return ToArray(HttpContext.Current.Request.QueryString[parameterName], delimiter);
+		}
 
+		/// <summary>
+		/// Splits the <paramref name="value" /> into an array based on the <paramref name="delimiter" />.
+		/// Any leading or trailing apostrophes, quotation marks, or spaces are removed.
+		/// </summary>
+		/// <param name="value">The value to convert to an array.</param>
+		/// <param name="delimiter">The delimiter to separate the <paramref name="value" /> by. Default value is '+'.
+		/// </param>
+		/// <returns>System.String[].</returns>
+		public static string[] ToArray(string value, char delimiter = '+')
+		{
 			return (value == null ?
 				null :
 				value
-					.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries)
-					.Select(p => p.Trim(new[] { '"', '\'', ' ' })).ToArray());
+					.Split(new[] {delimiter}, StringSplitOptions.RemoveEmptyEntries)
+					.Select(p => p.Trim(new[] {'"', '\'', ' '})).ToArray());
 		}
 
 		/// <summary>

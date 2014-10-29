@@ -22,7 +22,7 @@ namespace GalleryServerPro.Web.Entity
 		public string SkinPath { get; set; }
 
 		/// <summary>
-		/// Gets the URL, relative to the application root and without any query string parameters, 
+		/// Gets the URL, relative to the website root and without any query string parameters, 
 		/// to the current page. Example: "/dev/gs/gallery.aspx"
 		/// </summary>
 		/// <value>
@@ -44,6 +44,20 @@ namespace GalleryServerPro.Web.Entity
 		/// </summary>
 		/// <value>The URL to the current web application.</value>
 		public string AppUrl { get; set; }
+
+		/// <summary>
+		/// Gets the URL to the list of recently added media objects. Requires running an Enterprise license; 
+		/// value will be null when running in trial mode or under other licenses. Ex: http://site.com/gallery/default.aspx?latest=50
+		/// </summary>
+		/// <value>The URL to the list of recently added media objects.</value>
+		public string LatestUrl { get; set; }
+
+		/// <summary>
+		/// Gets the URL to the list of top rated media objects. Requires running an Enterprise license; 
+		/// value will be null when running in trial mode or under other licenses. Ex: http://site.com/gallery/default.aspx?latest=50
+		/// </summary>
+		/// <value>The URL to the list of top rated media objects.</value>
+		public string TopRatedUrl { get; set; }
 
 		/// <summary>
 		/// Gets a value indicating whether the initial 30-day trial for the application has expired and no valid product key 

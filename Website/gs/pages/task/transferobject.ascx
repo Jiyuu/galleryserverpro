@@ -31,19 +31,19 @@
   </p>
 	<asp:Repeater ID="rptr" runat="server">
 		<HeaderTemplate>
-			<div class="gsp_floatcontainer">
+			<ul class="gsp_floatcontainer">
 		</HeaderTemplate>
 		<ItemTemplate>
-			<div class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
+			<li class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
 				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem) %>
 				<p class="gsp_caption">
 					<asp:CheckBox ID="chkbx" runat="server" Text='<%# GetTitle(Eval("Title").ToString()) %>' CssClass="gsp_go_t" Width="<%# GetTitleWidth((IGalleryObject) Container.DataItem) %>" />
 					<input id="Hidden1" runat="server" type="hidden" value='<%# GetId((IGalleryObject) Container.DataItem) %>' />
 				</p>
-			</div>
+			</li>
 		</ItemTemplate>
 		<FooterTemplate>
-			</div>
+			</ul>
 		</FooterTemplate>
 	</asp:Repeater>
 	<asp:PlaceHolder ID="phCustomValidatorContainer" runat="server" Visible="false" />

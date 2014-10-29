@@ -193,16 +193,16 @@
     <value>Files of this type ({0}) are not allowed to be added to the gallery.</value>
   </data>
   <data name="CannotWriteToDirectory_Ex_Msg" xml:space="preserve">
-    <value>Gallery Server Pro cannot write to a directory. This may be due to insufficient permissions. Check that the directory exists and that the web application has read, write and modify permission to it. If the application is running at less than Full Trust, the path must be within the web application. By default, the IIS worker process runs under the ASPNET user in IIS 5 and 5.1, Network Service in IIS 6 and 7, and IIS AppPool\DefaultAppPool in IIS 7.5. NOTE: You may need to restart the IIS application pool to force your changes to take effect.</value>
+    <value>Gallery Server Pro cannot write to a directory. This may be due to insufficient permissions. Check that the directory exists and that the IIS application pool has read, write and modify permission to it. If the application is running at less than Full Trust, the path must be within the web application.</value>
   </data>
   <data name="CannotWriteToDirectory_Ex_Msg2" xml:space="preserve">
-    <value>Gallery Server Pro cannot write to the directory "{0}". This may be due to insufficient permissions. Check that the directory exists and that the web application has read, write and modify permission to it. If the application is running at less than Full Trust, the path must be within the web application.  By default, the IIS worker process runs under the ASPNET user in IIS 5 and 5.1, Network Service in IIS 6 and 7, and IIS AppPool\DefaultAppPool in IIS 7.5. NOTE: You may need to restart the IIS application pool to force your changes to take effect.</value>
+    <value>Gallery Server Pro cannot write to the directory "{0}". This may be due to insufficient permissions. Check that the directory exists and that the IIS application pool has read, write and modify permission to it. If the application is running at less than Full Trust, the path must be within the web application.</value>
   </data>
   <data name="CannotReadFromDirectory_Ex_Msg" xml:space="preserve">
-    <value>Gallery Server Pro cannot read from a directory. This may be due to insufficient permissions. Check that the directory exists and that the web application has read permission for it. By default, the IIS worker process runs under the ASPNET user in IIS 5 and 5.1, Network Service in IIS 6 and 7, and IIS AppPool\DefaultAppPool in IIS 7.5. NOTE: You may need to restart the IIS application pool to force your changes to take effect.</value>
+    <value>Gallery Server Pro cannot read from a directory. This may be due to insufficient permissions. Check that the directory exists and that the IIS application pool has read permission for it.</value>
   </data>
   <data name="CannotReadFromDirectory_Ex_Msg2" xml:space="preserve">
-    <value>Gallery Server Pro cannot read from the directory "{0}". This may be due to insufficient permissions. Check that the directory exists and that the web application has read permission for it. By default, the IIS worker process runs under the ASPNET user in IIS 5 and 5.1, Network Service in IIS 6 and 7, and IIS AppPool\DefaultAppPool in IIS 7.5. NOTE: You may need to restart the IIS application pool to force your changes to take effect.</value>
+    <value>Gallery Server Pro cannot read from the directory "{0}". This may be due to insufficient permissions. Check that the directory exists and that the web application has read permission for it.</value>
   </data>
   <data name="Cannot_Send_Email_Lbl" xml:space="preserve">
     <value>Cannot send e-mail</value>

@@ -36,29 +36,34 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.3, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.4, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\Salient.Data.dll</HintPath>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\Salient.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
       <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Web.Providers">
-      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.1.2\lib\net40\System.Web.Providers.dll</HintPath>
+    <Reference Include="System.Web.Providers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.2.0.0\lib\net40\System.Web.Providers.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -67,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\CannotCompactSqlCeException.cs" />
+    <Compile Include="Classes\Constants.cs" />
     <Compile Include="Controller\BackupFileController.cs" />
     <Compile Include="Controller\MigrateController.cs" />
     <Compile Include="Controller\Migrate26Controller.cs" />
@@ -113,6 +119,14 @@
     <Compile Include="Migrations\201309261612260_v3.1.0.cs" />
     <Compile Include="Migrations\201309261612260_v3.1.0.Designer.cs">
       <DependentUpon>201309261612260_v3.1.0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201403311956281_v3.2.0.cs" />
+    <Compile Include="Migrations\201403311956281_v3.2.0.Designer.cs">
+      <DependentUpon>201403311956281_v3.2.0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201405291916303_v3.2.1.cs" />
+    <Compile Include="Migrations\201405291916303_v3.2.1.Designer.cs">
+      <DependentUpon>201405291916303_v3.2.1.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -165,6 +179,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309261612260_v3.1.0.resx">
       <DependentUpon>201309261612260_v3.1.0.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201403311956281_v3.2.0.resx">
+      <DependentUpon>201403311956281_v3.2.0.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201405291916303_v3.2.1.resx">
+      <DependentUpon>201405291916303_v3.2.1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Schema\GalleryServerProSchema.xml">
       <SubType>Designer</SubType>

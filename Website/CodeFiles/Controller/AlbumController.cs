@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using GalleryServerPro.Business.Interfaces;
 using GalleryServerPro.Business;
 using GalleryServerPro.Business.Metadata;
+using GalleryServerPro.Business.NullObjects;
 using GalleryServerPro.Events.CustomExceptions;
 using System.Globalization;
 using System.Linq;
+using GalleryServerPro.Web.Entity;
 
 namespace GalleryServerPro.Web.Controller
 {
@@ -369,8 +371,10 @@ namespace GalleryServerPro.Web.Controller
 			albumEntity.DateEnd = album.DateEnd;
 			albumEntity.IsPrivate = album.IsPrivate;
 			albumEntity.VirtualType = (int)album.VirtualAlbumType;
+			albumEntity.RssUrl = GetRssUrl(album);
 			albumEntity.Permissions = perms;
 			albumEntity.MetaItems = GalleryObjectController.ToMetaItems(album.MetadataItems.GetVisibleItems(), album);
+			albumEntity.NumAlbums = album.GetChildGalleryObjects(GalleryObjectType.Album, !Utils.IsAuthenticated).Count;
 
 			// Optionally load gallery items
 			if (options.LoadGalleryItems)
@@ -381,7 +385,7 @@ namespace GalleryServerPro.Web.Controller
 				if (albumSortDef != null)
 				{
 					items = album
-						.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated)
+						.GetChildGalleryObjects(options.Filter, !Utils.IsAuthenticated)
 						.ToSortedList(albumSortDef.SortByMetaName, albumSortDef.SortAscending, album.GalleryId);
 
 					albumEntity.SortById = (int)albumSortDef.SortByMetaName;
@@ -389,38 +393,47 @@ namespace GalleryServerPro.Web.Controller
 				}
 				else
 				{
-					items = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).ToSortedList();
+					if (album.IsVirtualAlbum)
+					{
+						items = album.GetChildGalleryObjects(options.Filter, !Utils.IsAuthenticated).ToSortedList(album.SortByMetaName, album.SortAscending, album.GalleryId);
+					}
+					else
+					{
+						// Real (non-virtual) albums are already sorted on their Seq property, so return items based on that.
+						items = album.GetChildGalleryObjects(options.Filter, !Utils.IsAuthenticated).ToSortedList();
+					}
+
 					albumEntity.SortById = (int)album.SortByMetaName;
 					albumEntity.SortUp = album.SortAscending;
 				}
 
-				if (options.NumAlbumsToRetrieve > 0)
-					items = items.Skip(options.NumAlbumsToSkip).Take(options.NumAlbumsToRetrieve).ToList();
+				if (options.NumGalleryItemsToRetrieve > 0)
+					items = items.Skip(options.NumGalleryItemsToSkip).Take(options.NumGalleryItemsToRetrieve).ToList();
 
 				albumEntity.GalleryItems = GalleryObjectController.ToGalleryItems(items);
 				albumEntity.NumGalleryItems = albumEntity.GalleryItems.Length;
 			}
 			else
 			{
-				albumEntity.NumGalleryItems = album.GetChildGalleryObjects(GalleryObjectType.All, !Utils.IsAuthenticated).Count;
-			}
-
-			// Optionally load child albums
-			if (options.LoadChildAlbums)
-			{
-				var items = album.GetChildGalleryObjects(GalleryObjectType.Album, !Utils.IsAuthenticated).ToSortedList();
-				albumEntity.NumAlbums = items.Count;
-				albumEntity.Albums = ToAlbumEntities(items, new Entity.GalleryDataLoadOptions());
-			}
-			else
-			{
-				albumEntity.NumAlbums = album.GetChildGalleryObjects(GalleryObjectType.Album, !Utils.IsAuthenticated).Count;
+				albumEntity.NumGalleryItems = album.GetChildGalleryObjects(options.Filter, !Utils.IsAuthenticated).Count;
 			}
 
 			// Optionally load media items
 			if (options.LoadMediaItems)
 			{
-				var items = album.GetChildGalleryObjects(GalleryObjectType.MediaObject, !Utils.IsAuthenticated).ToSortedList();
+				IList<IGalleryObject> items;
+
+				if (album.IsVirtualAlbum)
+				{
+					items = album.GetChildGalleryObjects(GalleryObjectType.MediaObject, !Utils.IsAuthenticated).ToSortedList(album.SortByMetaName, album.SortAscending, album.GalleryId);
+				}
+				else
+				{
+					// Real (non-virtual) albums are already sorted on their Seq property, so return items based on that.
+					items = album.GetChildGalleryObjects(GalleryObjectType.MediaObject, !Utils.IsAuthenticated).ToSortedList();
+				}
+
+				//IList<IGalleryObject> items = album.GetChildGalleryObjects(GalleryObjectType.MediaObject, !Utils.IsAuthenticated).ToSortedList();
 				albumEntity.NumMediaItems = items.Count;
 				albumEntity.MediaItems = GalleryObjectController.ToMediaItems(items);
 			}
@@ -685,6 +698,13 @@ namespace GalleryServerPro.Web.Controller
 			}
 		}
 
+		/// <summary>
+		/// Gets the URL to the specified <paramref name="album" />.
+		/// </summary>
+		/// <param name="album">The album.</param>
+		/// <returns>System.String.</returns>
+		/// <exception cref="System.InvalidOperationException">Thrown when the function encounters a virtual album
+		/// type it was not designed to handle.</exception>
 		public static string GetUrl(IAlbum album)
 		{
 			var appPath = Utils.GetCurrentPageUrl();
@@ -704,9 +724,135 @@ namespace GalleryServerPro.Web.Controller
 					return Utils.GetUrl(PageId.album, "people={0}", Utils.UrlEncode(Utils.GetQueryStringParameterString("people")));
 				case VirtualAlbumType.Search:
 					return Utils.GetUrl(PageId.album, "search={0}", Utils.UrlEncode(Utils.GetQueryStringParameterString("search")));
+				case VirtualAlbumType.MostRecentlyAdded:
+					return Utils.GetUrl(PageId.album, "latest={0}", Utils.GetQueryStringParameterInt32("latest"));
+				case VirtualAlbumType.Rated:
+					return Utils.GetUrl(PageId.album, "rating={0}&top={1}", Utils.GetQueryStringParameterString("rating"), Utils.GetQueryStringParameterInt32("top"));
 				default:
 					throw new InvalidOperationException(String.Format("The method AlbumController.GetUrl() encountered a VirtualAlbumType ({0}) it was not designed to handle. The developer must update this method.", album.VirtualAlbumType));
 			}
+		}
+
+		/// <summary>
+		/// Gets the RSS URL for the specified <paramref name="album" />. Returns null if the user is not 
+		/// running the Enterprise version or no applicable RSS URL exists for the album. For example, 
+		/// virtual root albums that are used for restricted users will return null.
+		/// </summary>
+		/// <param name="album">The album.</param>
+		/// <returns>System.String.</returns>
+		public static string GetRssUrl(IAlbum album)
+		{
+			if (AppSetting.Instance.License.LicenseType != LicenseLevel.Enterprise)
+			{
+				return null;
+			}
+
+			switch (album.VirtualAlbumType)
+			{
+				case VirtualAlbumType.NotVirtual:
+					return String.Concat(Utils.AppRoot, "/api/feed/album?id=", album.Id);
+				case VirtualAlbumType.TitleOrCaption:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/title?q={1}&galleryid={2}", Utils.AppRoot, Utils.GetQueryStringParameterString("title"), album.GalleryId);
+				case VirtualAlbumType.Search:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/search?q={1}&galleryid={2}", Utils.AppRoot, Utils.GetQueryStringParameterString("search"), album.GalleryId);
+				case VirtualAlbumType.Tag:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/tag?q={1}&galleryid={2}", Utils.AppRoot, Utils.GetQueryStringParameterString("tag"), album.GalleryId);
+				case VirtualAlbumType.People:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/people?q={1}&galleryid={2}", Utils.AppRoot, Utils.GetQueryStringParameterString("people"), album.GalleryId);
+				case VirtualAlbumType.MostRecentlyAdded:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/latest?galleryid={1}", Utils.AppRoot, album.GalleryId);
+				case VirtualAlbumType.Rated:
+					return String.Format(CultureInfo.InvariantCulture, "{0}/api/feed/rating?rating={1}&top={2}&galleryid={3}", Utils.AppRoot, Utils.GetQueryStringParameterString("rating"), Utils.GetQueryStringParameterInt32("top"), album.GalleryId);
+				default:
+					return null;
+			}
+		}
+
+		/// <summary>
+		/// Sorts the <paramref name="galleryItems" /> in the order in which they are passed.
+		/// This method is used when a user is manually sorting an album and has dragged an item to a new position.
+		/// </summary>
+		/// <param name="galleryItems">The gallery objects to sort. Their position in the array indicates the desired
+		/// sequence. Only <see cref="Entity.GalleryItem.Id" /> and <see cref="Entity.GalleryItem.ItemType" /> need be
+		/// populated.</param>
+		/// <param name="userName">Name of the logged on user.</param>
+		public static void Sort(GalleryItem[] galleryItems, string userName)
+		{
+			if (galleryItems == null || galleryItems.Length == 0)
+			{
+				return;
+			}
+
+			try
+			{
+				// To improve performance, grab a writable collection of all the items in the album containing the first item.
+				// At the time this function was written, the galleryItems parameter will only include items in a single album,
+				// so this step allows us to get all the items in a single step. For robustness and to support all possible usage,
+				// the code in the iteration manually loads a writable instance if it's not in the collection.
+				var galleryObjects = GetWritableSiblingGalleryObjects(galleryItems[0]);
+
+				var seq = 1;
+				foreach (var galleryItem in galleryItems)
+				{
+					// Loop through each item and update its Sequence property to match the order in which it was passed.
+					var item = galleryItem;
+
+					var galleryObject = galleryObjects.FirstOrDefault(go => go.Id == item.Id && go.GalleryObjectType == (GalleryObjectType)item.ItemType);
+
+					if (galleryObject == null)
+					{
+						// Not found, so load it manually. This is not expected to ever occur when manually sorting an album, but we 
+						// include it for robustness.
+						if ((GalleryObjectType)galleryItem.ItemType == GalleryObjectType.Album)
+						{
+							galleryObject = Factory.LoadAlbumInstance(galleryItem.Id, false, true);
+						}
+						else
+						{
+							galleryObject = Factory.LoadMediaObjectInstance(galleryItem.Id, true);
+						}
+					}
+
+					galleryObject.Sequence = seq;
+					GalleryObjectController.SaveGalleryObject(galleryObject, userName);
+					seq++;
+				}
+
+				HelperFunctions.PurgeCache();
+			}
+			catch (Exception ex)
+			{
+				AppEventController.LogError(ex);
+
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Re-sort the items in the album according to the criteria and store this updated sequence in the
+		/// database. Callers must have <see cref="SecurityActions.EditAlbum" /> permission.
+		/// </summary>
+		/// <param name="albumId">The album ID.</param>
+		/// <param name="sortByMetaNameId">The name of the metadata item to sort on.</param>
+		/// <param name="sortAscending">If set to <c>true</c> sort in ascending order.</param>
+		/// <exception cref="System.Web.Http.HttpResponseException"></exception>
+		public static void Sort(int albumId, int sortByMetaNameId, bool sortAscending)
+		{
+			var album = LoadAlbumInstance(albumId, true, true);
+
+			SecurityManager.ThrowIfUserNotAuthorized(SecurityActions.EditAlbum, RoleController.GetGalleryServerRolesForUser(), album.Id, album.GalleryId, Utils.IsAuthenticated, album.IsPrivate, album.IsVirtualAlbum);
+
+			var oldSortByMetaName = album.SortByMetaName;
+			var oldSortAscending = album.SortAscending;
+
+			album.SortByMetaName = (MetadataItemName)sortByMetaNameId;
+			album.SortAscending = sortAscending;
+
+			ReverseCustomSortIfNeeded(album, oldSortByMetaName, oldSortAscending);
+
+			album.Sort(true, Utils.UserName);
+
+			HelperFunctions.PurgeCache();
 		}
 
 		#endregion
@@ -891,6 +1037,71 @@ namespace GalleryServerPro.Web.Controller
 				{
 					IAlbum value;
 					albumCache.TryRemove(album.Id, out value);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets a writable collection of the gallery objects in the album containing <paramref name="galleryItem" />, including 
+		/// <paramref name="galleryItem" />. If <paramref name="galleryItem" /> does not represent a valid object, an empty 
+		/// collection is returned. Guaranteed to not return null.
+		/// </summary>
+		/// <param name="galleryItem">A gallery item. The object must have the <see cref="GalleryItem.Id" /> and 
+		/// <see cref="GalleryItem.ItemType" /> properties specified; the others are optional.</param>
+		/// <returns>An instance of <see cref="IGalleryObjectCollection" />.</returns>
+		private static IGalleryObjectCollection GetWritableSiblingGalleryObjects(GalleryItem galleryItem)
+		{
+			IGalleryObject parentAlbum;
+
+			try
+			{
+				int parentAlbumId;
+				if ((GalleryObjectType)galleryItem.ItemType == GalleryObjectType.Album)
+				{
+					parentAlbumId = LoadAlbumInstance(galleryItem.Id, false).Parent.Id;
+				}
+				else
+				{
+					parentAlbumId = Factory.LoadMediaObjectInstance(galleryItem.Id).Parent.Id;
+				}
+
+				parentAlbum = LoadAlbumInstance(parentAlbumId, true, true);
+			}
+			catch (InvalidAlbumException)
+			{
+				parentAlbum = new NullGalleryObject();
+			}
+			catch (InvalidMediaObjectException)
+			{
+				parentAlbum = new NullGalleryObject();
+			}
+
+			return parentAlbum.GetChildGalleryObjects();
+		}
+
+		/// <summary>
+		/// Reverse the gallery objects in the <paramref name="album" /> if they are custom sorted and the user
+		/// clicked the reverse sort button (i.e. changed the <paramref name="previousSortAscending" /> value).
+		/// This can't be handled by the normal sort routine because we aren't actually sorting on any particular
+		/// metadata value.
+		/// </summary>
+		/// <param name="album">The album whose items are to be sorted.</param>
+		/// <param name="previousSortByMetaName">The name of the metadata property the album was previously sorted on.</param>
+		/// <param name="previousSortAscending">Indicates whether the album was previously sorted in ascending order.</param>
+		private static void ReverseCustomSortIfNeeded(IAlbum album, MetadataItemName previousSortByMetaName, bool previousSortAscending)
+		{
+			var albumIsCustomSortedAndUserIsChangingSortDirection = ((album.SortByMetaName == MetadataItemName.NotSpecified)
+				&& (album.SortByMetaName == previousSortByMetaName)
+				&& (album.SortAscending != previousSortAscending));
+
+			if (albumIsCustomSortedAndUserIsChangingSortDirection)
+			{
+				// Album is being manually sorted and user clicked the reverse button.
+				var seq = 1;
+				foreach (var galleryObject in album.GetChildGalleryObjects().ToSortedList().Reverse())
+				{
+					galleryObject.Sequence = seq;
+					seq++;
 				}
 			}
 		}

@@ -81,7 +81,7 @@ namespace GalleryServerPro.Business
 		public static IGalleryObject LoadGalleryObjectInstance(int id, GalleryObjectType galleryObjectType)
 		{
 			// If the gallery object type is vague, we need to figure it out.
-			if ((galleryObjectType == GalleryObjectType.All) || (galleryObjectType == GalleryObjectType.None) || (galleryObjectType == GalleryObjectType.Unknown))
+			if ((galleryObjectType == GalleryObjectType.All) || (galleryObjectType == GalleryObjectType.NotSpecified) || (galleryObjectType == GalleryObjectType.Unknown))
 			{
 				galleryObjectType = HelperFunctions.DetermineGalleryObjectType(id);
 			}
@@ -1268,7 +1268,8 @@ namespace GalleryServerPro.Business
 				GalleryId = galleryId,
 				SearchType = GalleryObjectSearchType.HighestAlbumUserCanView,
 				Roles = roles,
-				IsUserAuthenticated = isAuthenticated
+				IsUserAuthenticated = isAuthenticated,
+				Filter = GalleryObjectType.Album
 			});
 
 			return galleryObjectSearcher.FindOne() as IAlbum;

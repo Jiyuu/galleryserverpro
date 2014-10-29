@@ -65,22 +65,26 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization" />
@@ -101,6 +105,9 @@
     <Compile Include="ClientMessageOptions.cs" />
     <Compile Include="DisplayObjectCreator.cs" />
     <Compile Include="DbManager.cs" />
+    <Compile Include="Entity\Tag.cs" />
+    <Compile Include="GlobalConstants.cs" />
+    <Compile Include="FeedFormatterOptions.cs" />
     <Compile Include="VideoOriginalCreator.cs" />
     <Compile Include="MediaObjectProfile.cs" />
     <Compile Include="MediaObjectProfileCollection.cs" />
@@ -161,7 +168,6 @@
     <Compile Include="GalleryServerRole.cs" />
     <Compile Include="GenericMediaObject.cs" />
     <Compile Include="GenericThumbnailCreator.cs" />
-    <Compile Include="GlobalConstants.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="HtmlValidator.cs" />
     <Compile Include="Image.cs" />
@@ -224,7 +230,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagrams\GalleryObjectMetadata.cd" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\GenericThumbnailImage_Image.png" />
   </ItemGroup>
   <ItemGroup>

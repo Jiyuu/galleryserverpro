@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity.Migrations;
 
 namespace GalleryServerPro.Data.Migrations
@@ -11,11 +12,21 @@ namespace GalleryServerPro.Data.Migrations
 	/// </remarks>
 	public sealed class GalleryDbMigrationConfiguration : DbMigrationsConfiguration<GalleryDb>
 	{
-		//public GalleryDbMigrationConfiguration()
-		//{
-		//	AutomaticMigrationsEnabled = true;
-		//	AutomaticMigrationDataLossAllowed = true;
-		//}
+		public GalleryDbMigrationConfiguration()
+		{
+		}
+
+		public GalleryDbMigrationConfiguration(Business.ProviderDataStore galleryDataStore)
+		{
+			if (galleryDataStore == Business.ProviderDataStore.SqlServer)
+			{
+				// Increase the timeout used to apply migration changes, but only for SQL Server (SQL CE will throw an exception).
+				CommandTimeout = 3600;
+			}
+			
+			//AutomaticMigrationsEnabled = true;
+			//AutomaticMigrationDataLossAllowed = true;
+		}
 
 		/// <summary>
 		/// Runs after upgrading to the latest migration to allow seed data to be updated. Use this opportunity to apply bug

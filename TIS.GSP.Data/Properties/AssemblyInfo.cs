@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Tech Info Systems, LLC")]
 [assembly: AssemblyProduct("Gallery Server Pro")]
-[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2013")]
+[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: CLSCompliant(true)]
@@ -20,4 +20,4 @@ using System.Runtime.InteropServices;
 // contents are changed to represent a different locale.
 [assembly: System.Resources.NeutralResourcesLanguage("en-US")]
 
-[assembly: AssemblyVersion("3.1.0.*")]
+[assembly: AssemblyVersion("3.2.1.*")]

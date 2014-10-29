@@ -390,12 +390,16 @@ namespace GalleryServerPro.Business
 					var bmpFrame = FastResize(photo, newSize.Width, newSize.Height);
 					var resizedBytes = GenerateJpegByteArray(bmpFrame, jpegQuality);
 
-					File.WriteAllBytes(newFilePath, resizedBytes);
+					ImageHelper.SaveImageToDisk(resizedBytes, newFilePath);
 
 					var rotatedSize = ExecuteAutoRotation(newFilePath, jpegQuality);
 
 					return (rotatedSize.IsEmpty ? newSize : rotatedSize);
 				}
+			}
+			catch (FileFormatException ex)
+			{
+				throw new UnsupportedImageTypeException(GalleryObject, ex);
 			}
 			catch (NotSupportedException ex)
 			{
@@ -516,7 +520,7 @@ namespace GalleryServerPro.Business
 
 		private static BitmapFrame FastResize(BitmapFrame photo, double width, double height)
 		{
-			var dpiXFactor = (photo.DpiX > 0 ? 96/ photo.DpiX : 1);
+			var dpiXFactor = (photo.DpiX > 0 ? 96 / photo.DpiX : 1);
 			var dpiYFactor = (photo.DpiY > 0 ? 96 / photo.DpiY : 1);
 
 			var target = new TransformedBitmap(
@@ -546,6 +550,15 @@ namespace GalleryServerPro.Business
 			return BitmapFrame.Create(target);
 		}
 
+		/// <summary>
+		/// Generates the JPEG in <paramref name="targetFrame" /> to a JPEG byte array having the specified <paramref name="quality" />.
+		/// </summary>
+		/// <param name="targetFrame">The target frame containing the JPEG.</param>
+		/// <param name="quality">The quality the generated JPEG is to have.</param>
+		/// <returns>System.Byte[][].</returns>
+		/// <exception cref="FileFormatException">Thrown when an input file or a data stream that is supposed to conform to a 
+		/// certain file format specification is malformed. Thrown by <see cref="JpegBitmapEncoder.Save" />.</exception>
+		/// <exception cref="NotSupportedException">Thrown when <see cref="JpegBitmapEncoder" /> does not have a valid frame.</exception>
 		private static byte[] GenerateJpegByteArray(BitmapFrame targetFrame, int quality)
 		{
 			byte[] targetBytes;
@@ -572,7 +585,7 @@ namespace GalleryServerPro.Business
 				using (var photoStream = new MemoryStream(photoBytes))
 				{
 					var photo = ReadBitmapFrame(photoStream);
-					return new Size(photo.Width, photo.Height);
+					return new Size(photo.PixelWidth, photo.PixelHeight);
 				}
 			}
 			catch (NotSupportedException)

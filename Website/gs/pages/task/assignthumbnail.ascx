@@ -25,20 +25,20 @@
   <asp:PlaceHolder ID="phTaskHeader" runat="server" />
   <asp:Repeater ID="rptr" runat="server">
     <HeaderTemplate>
-      <div class="gsp_floatcontainer">
+      <ul class="gsp_floatcontainer">
     </HeaderTemplate>
     <ItemTemplate>
-      <div class="thmb">
+      <li class="thmb">
         <%# GetThumbnailHtml((IGalleryObject) Container.DataItem) %>
         <p class="<%# cid %>_caption">
           <asp:RadioButton ID="rb" runat="server" GroupName="thmb" Text='<%# GetTitle(Eval("Title").ToString()) %>'
             Checked='<%# IsAlbumThumbnail(Convert.ToInt32(Eval("ID"))) %>' CssClass="gsp_go_t" Width="<%# GetTitleWidth((IGalleryObject) Container.DataItem) %>" />
         </p>
         <asp:HiddenField ID="hdn" runat="server" Value="<%# GetId((IGalleryObject) Container.DataItem) %>" />
-      </div>
+      </li>
     </ItemTemplate>
     <FooterTemplate>
-      </div>
+      </ul>
     </FooterTemplate>
   </asp:Repeater>
   <asp:PlaceHolder ID="phTaskFooter" runat="server" />

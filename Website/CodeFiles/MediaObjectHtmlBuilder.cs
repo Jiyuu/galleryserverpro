@@ -14,273 +14,203 @@ namespace GalleryServerPro.Web
 	/// {Width}. These parameters are replaced with the relevant values.
 	/// TODO: Add caching functionality to speed up the ability to generate HTML.
 	/// </summary>
-	public class MediaObjectHtmlBuilder : IMediaObjectHtmlBuilder
+	public class MediaObjectHtmlBuilder
 	{
 		#region Private Fields
 
-		private readonly int _galleryId;
-		private readonly IGalleryObject _galleryObject;
-		private int _mediaObjectId;
-		private int _albumId;
-		private IMimeType _mimeType;
-		private string _mediaObjectPhysicalPath;
-		private int _width;
-		private int _height;
-		private string _title;
-		private bool? _autoStartMediaObject;
-		private readonly Array _browsers;
-		private DisplayObjectType _displayType;
-		private bool _isPrivate;
-		private readonly string _externalHtmlSource;
 		private string _uniquePrefixId;
+		private IMediaTemplate _mediaTemplate;
 
 		#endregion
 
 		#region Constructors
 
-		public MediaObjectHtmlBuilder(IGalleryObject mediaObject, IDisplayObject displayObject, Array browsers)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MediaObjectHtmlBuilder"/> class.
+		/// </summary>
+		/// <param name="options">The options that will dictate the HTML and URL generation.</param>
+		/// <exception cref="System.ArgumentNullException">Thrown when <paramref name="options" /> is null.</exception>
+		/// <exception cref="System.ArgumentException">Thrown when <paramref name="options" /> contains one or more
+		/// invalid values.</exception>
+		public MediaObjectHtmlBuilder(MediaObjectHtmlBuilderOptions options)
 		{
-			if (mediaObject == null)
-				throw new ArgumentNullException("mediaObject");
+			if (options == null)
+				throw new ArgumentNullException("options");
 
-			if (displayObject == null)
-				throw new ArgumentNullException("displayObject");
-
-			if ((browsers == null) || (browsers.Length < 1))
+			if ((options.Browsers == null) || (options.Browsers.Length < 1))
 				throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Resources.GalleryServerPro.MediaObjectHtmlBuilder_Ctor_InvalidBrowsers_Msg));
 
-			this._galleryObject = mediaObject;
-			this._mediaObjectId = mediaObject.Id;
-			this._albumId = mediaObject.Parent.Id;
-			this._mimeType = displayObject.MimeType;
-			this._mediaObjectPhysicalPath = displayObject.FileNamePhysicalPath;
-			this._width = displayObject.Width;
-			this._height = displayObject.Height;
-			this._title = mediaObject.Title;
-			this._browsers = browsers;
-			this._displayType = displayObject.DisplayType;
-			this._isPrivate = mediaObject.IsPrivate;
-			this._galleryId = mediaObject.GalleryId;
-			this._externalHtmlSource = displayObject.ExternalHtmlSource;
+			if (options.GalleryObject == null)
+				throw new ArgumentException("The GalleryObject property of the options parameter cannot be null.", "options");
+
+			if (options.DisplayType == DisplayObjectType.Unknown)
+				throw new ArgumentException("The DisplayType property of the options parameter cannot be DisplayObjectType.Unknown.", "options");
+
+			Options = options;
 		}
 
 		#endregion
 
-		#region Public Properties
+		#region Properties
 
 		/// <summary>
-		/// Gets the gallery ID.
+		/// Gets or sets the options that dictate the HTML and URL generation.
 		/// </summary>
-		/// <value>The gallery ID.</value>
-		public int GalleryId
+		private MediaObjectHtmlBuilderOptions Options { get; set; }
+
+		/// <summary>
+		/// Gets the gallery object.
+		/// </summary>
+		public IGalleryObject GalleryObject
 		{
-			get { return _galleryId; }
+			get { return Options.GalleryObject; }
 		}
 
 		/// <summary>
-		/// Gets or sets the unique identifier for this media object.
+		/// Gets the ID of the media object associated with <see cref="GalleryObject" />. When <see cref="GalleryObject" />
+		/// is an <see cref="IAlbum" />, this property returns the ID of the thumbnail image or zero if no thumbnail
+		/// image is assigned.
 		/// </summary>
-		/// <value>The unique identifier for this media object.</value>
-		public int MediaObjectId
-		{
-			get
-			{
-				return this._mediaObjectId;
-			}
-			set
-			{
-				this._mediaObjectId = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the unique identifier for album containing the media object.
-		/// </summary>
-		/// <value>The unique identifier for album containing the media object.</value>
-		public int AlbumId
+		private int MediaObjectId
 		{
 			get
 			{
-				return this._albumId;
-			}
-			set
-			{
-				this._albumId = value;
+				if (GalleryObject is IAlbum)
+				{
+					return GetAlbumThumbnailId();
+				}
+
+				return GalleryObject.Id;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the MIME type of this media object.
+		/// Gets the MIME type of the <see cref="DisplayObject" /> of the <see cref="GalleryObject" />.
 		/// </summary>
-		/// <value>The MIME type of this media object.</value>
 		public IMimeType MimeType
 		{
 			get
 			{
-				return this._mimeType;
-			}
-			set
-			{
-				this._mimeType = value;
+				return DisplayObject.MimeType;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the physical path to this media object, including the object's name. Example:
+		/// Gets the physical path to this media object, including the object's name. Example:
 		/// C:\Inetpub\wwwroot\galleryserverpro\mediaobjects\Summer 2005\sunsets\desert sunsets\sonorandesert.jpg
 		/// </summary>
-		/// <value>
-		/// The physical path to this media object, including the object's name.
-		/// </value>
 		public string MediaObjectPhysicalPath
 		{
 			get
 			{
-				return this._mediaObjectPhysicalPath;
-			}
-			set
-			{
-				this._mediaObjectPhysicalPath = value;
+				return DisplayObject.FileNamePhysicalPath;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the width of this object, in pixels.
+		/// Gets the width of this object, in pixels.
 		/// </summary>
-		/// <value>The width of this object, in pixels.</value>
 		public int Width
 		{
 			get
 			{
-				return this._width;
-			}
-			set
-			{
-				this._width = value;
+				return DisplayObject.Width;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the height of this object, in pixels.
+		/// Gets the height of this object, in pixels.
 		/// </summary>
-		/// <value>The height of this object, in pixels.</value>
 		public int Height
 		{
 			get
 			{
-				return this._height;
-			}
-			set
-			{
-				this._height = value;
+				return DisplayObject.Height;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the title for this gallery object.
-		/// </summary>
-		/// <value>The title for this gallery object.</value>
-		public string Title
-		{
-			get
-			{
-				return this._title;
-			}
-			set
-			{
-				this._title = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether to automatically begin playing the media object as soon as
-		/// possible in the client browser. This setting is applicable only to objects that can be played, such
-		/// as audio and video files.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if Gallery Server Pro is to automatically begin playing the media object as soon as
-		/// possible in the client browser; otherwise, <c>false</c>.
-		/// </value>
-		public bool AutoStartMediaObject
-		{
-			get
-			{
-				if (!this._autoStartMediaObject.HasValue)
-				{
-					this._autoStartMediaObject = Factory.LoadGallerySetting(GalleryId).AutoStartMediaObject;
-				}
-
-				return this._autoStartMediaObject.Value;
-			}
-			set
-			{
-				this._autoStartMediaObject = value;
-			}
-		}
-
-		/// <summary>
-		/// An <see cref="System.Array"/> of browser ids for the current browser. This is a list of strings,
+		/// Gets an <see cref="System.Array"/> of browser ids for the current browser. This is a list of strings,
 		/// ordered from most general to most specific, that represent the various categories of browsers the current
-		/// browser belongs to. This is typically populated by calling ToArray() on the Request.Browser.Browsers property.
+		/// browser belongs to.
 		/// </summary>
-		/// <value>
-		/// The <see cref="System.Array"/> of browser ids for the current browser.
-		/// </value>
 		public Array Browsers
 		{
 			get
 			{
-				return this._browsers;
+				return Options.Browsers;
 			}
-			//set
-			//{
-			//  this._browsers = value;
-			//}
+		}
+
+		private IMediaTemplate MediaTemplate
+		{
+			get
+			{
+				return _mediaTemplate ?? (_mediaTemplate = MimeType.GetMediaTemplate(Browsers));
+			}
 		}
 
 		/// <summary>
-		/// Gets or sets the type of the display object.
+		/// Gets the HTML from the media template corresponding to the <see cref="MimeType" /> and <see cref="Browsers" />.
+		/// If no media template exists, an empty string is returned.
 		/// </summary>
-		/// <value>The display type.</value>
+		private string HtmlTemplate
+		{
+			get
+			{
+				return (MediaTemplate == null ? String.Empty : MediaTemplate.HtmlTemplate);
+			}
+		}
+
+		/// <summary>
+		/// Gets the JavaScript from the media template corresponding to the <see cref="MimeType" /> and <see cref="Browsers" />.
+		/// If no media template exists, an empty string is returned.
+		/// </summary>
+		private string ScriptTemplate
+		{
+			get
+			{
+				return (MediaTemplate == null ? String.Empty : MediaTemplate.ScriptTemplate);
+			}
+		}
+
+		/// <summary>
+		/// Gets the type of the display object.
+		/// </summary>
 		public DisplayObjectType DisplayType
 		{
 			get
 			{
-				return this._displayType;
-			}
-			set
-			{
-				this._displayType = value;
+				return Options.DisplayType;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the media object is marked as private. Private albums and media
-		/// objects are hidden from anonymous (unauthenticated) users.
+		/// Gets the display object of the <see cref="GalleryObject" />.
 		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if this instance is private; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsPrivate
+		public IDisplayObject DisplayObject
 		{
 			get
 			{
-				return this._isPrivate;
-			}
-			set
-			{
-				this._isPrivate = value;
+				switch (DisplayType)
+				{
+					case DisplayObjectType.Thumbnail:
+						return GalleryObject.Thumbnail;
+					case DisplayObjectType.Optimized:
+						return GalleryObject.Optimized;
+					default:
+						return GalleryObject.Original;
+				}
 			}
 		}
 
 		/// <summary>
-		/// Generates a string about twelve characters long that can be used as a unique identifier, such as the ID of
+		/// Gets a generated string about twelve characters long that can be used as a unique identifier, such as the ID of
 		/// an HTML element. The value is generated the first time the property is accessed, and subsequent reads return
 		/// the same value. There is currently no support for generating more than one ID during the lifetime of an instance.
 		/// Ex: "gsp_1c135176ed"
 		/// </summary>
-		/// <value>Generates a string about twelve characters long that can be used as a unique identifier.</value>
-		public string UniquePrefixId
+		private string UniquePrefixId
 		{
 			get
 			{
@@ -293,34 +223,82 @@ namespace GalleryServerPro.Web
 			}
 		}
 
+		/// <summary>
+		/// Gets the URL, relative to the website root and optionally including any query string parameters,
+		/// to the page any generated URLs should point to. Examples: "/dev/gs/gallery.aspx",
+		/// "/dev/gs/gallery.aspx?g=admin_email&amp;aid=2389"
+		/// </summary>
+		public string DestinationPageUrl
+		{
+			get { return Options.DestinationPageUrl; }
+		}
+
+		/// <summary>
+		/// Gets the URI scheme, DNS host name or IP address, and port number for the current application. 
+		/// Examples: "http://www.site.com", "http://localhost", "http://127.0.0.1", "http://godzilla"
+		/// </summary>
+		public string HostUrl
+		{
+			get { return Options.HostUrl; }
+		}
+
+		/// <summary>
+		/// Gets the path, relative to the web site root, to the current web application.
+		/// Example: "/dev/gallery".
+		/// </summary>
+		public string AppRoot
+		{
+			get { return Options.AppRoot; }
+		}
+
+		/// <summary>
+		/// Gets the path, relative to the web site root, to the directory containing the Gallery Server Pro user 
+		/// controls and other resources. Example: "/dev/gallery/gs".
+		/// </summary>
+		public string GalleryRoot
+		{
+			get { return Options.GalleryRoot; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the current user is authenticated.
+		/// </summary>
+		/// <value><c>true</c> if the current user is authenticated; otherwise, <c>false</c>.</value>
+		public bool IsAuthenticated
+		{
+			get
+			{
+				return Options.IsAuthenticated;
+			}
+		}
+
 		#endregion
 
 		#region Public Methods
 
 		/// <summary>
-		/// Generate the HTML that can be sent to a browser to render the media object.
-		/// Guaranteed to not return null.
+		/// Generate the HTML that can be sent to a browser to render the media object. The HTML is generated from the
+		/// media template associated with the media objects MIME type. If <see cref="GalleryObject" /> is an <see cref="IAlbum" />,
+		/// <see cref="String.Empty" /> is returned. Guaranteed to not return null.
 		/// </summary>
-		/// <returns>
-		/// Returns a string of valid HTML that can be sent to a browser.
-		/// </returns>
+		/// <returns>Returns a string of valid HTML that can be sent to a browser.</returns>
 		public string GenerateHtml()
 		{
-			if (this._galleryObject is Album)
+			if (GalleryObject is IAlbum)
 				return String.Empty;
 
 			var htmlOutput = GetHtmlTemplate();
 
-			htmlOutput = htmlOutput.Replace("{HostUrl}", Utils.GetHostUrl());
+			htmlOutput = htmlOutput.Replace("{HostUrl}", HostUrl);
 			htmlOutput = htmlOutput.Replace("{MediaObjectUrl}", GetMediaObjectUrl());
-			htmlOutput = htmlOutput.Replace("{MimeType}", this.MimeType.BrowserMimeType);
-			htmlOutput = htmlOutput.Replace("{Width}", this.Width.ToString(CultureInfo.InvariantCulture));
-			htmlOutput = htmlOutput.Replace("{Height}", this.Height.ToString(CultureInfo.InvariantCulture));
-			htmlOutput = htmlOutput.Replace("{Title}", this.Title);
-			htmlOutput = htmlOutput.Replace("{TitleNoHtml}", Utils.RemoveHtmlTags(this.Title, true));
+			htmlOutput = htmlOutput.Replace("{MimeType}", MimeType.BrowserMimeType);
+			htmlOutput = htmlOutput.Replace("{Width}", Width.ToString(CultureInfo.InvariantCulture));
+			htmlOutput = htmlOutput.Replace("{Height}", Height.ToString(CultureInfo.InvariantCulture));
+			htmlOutput = htmlOutput.Replace("{Title}", GalleryObject.Title);
+			htmlOutput = htmlOutput.Replace("{TitleNoHtml}", Utils.RemoveHtmlTags(GalleryObject.Title, true));
 			htmlOutput = htmlOutput.Replace("{UniqueId}", UniquePrefixId);
 
-			bool autoStartMediaObject = Factory.LoadGallerySetting(GalleryId).AutoStartMediaObject;
+			bool autoStartMediaObject = Factory.LoadGallerySetting(GalleryObject.GalleryId).AutoStartMediaObject;
 
 			// Replace {AutoStartMediaObjectText} with "true" or "false".
 			htmlOutput = htmlOutput.Replace("{AutoStartMediaObjectText}", autoStartMediaObject.ToString().ToLowerInvariant());
@@ -338,75 +316,40 @@ namespace GalleryServerPro.Web
 				htmlOutput = ReplaceMediaObjectRelativeUrlNoHandlerParameter(htmlOutput);
 
 			if (htmlOutput.Contains("{GalleryPath}"))
-				htmlOutput = htmlOutput.Replace("{GalleryPath}", Utils.GalleryRoot);
+				htmlOutput = htmlOutput.Replace("{GalleryPath}", GalleryRoot);
 
 			return htmlOutput;
 		}
 
 		/// <summary>
-		/// Gets the HTML template to use for rendering this media object. Guaranteed to not
-		/// return null.
-		/// </summary>
-		/// <returns>Returns a string.</returns>
-		private string GetHtmlTemplate()
-		{
-			if (this._displayType == DisplayObjectType.External)
-			{
-				return this._externalHtmlSource;
-			}
-
-			var isInQueue = (this._displayType == DisplayObjectType.Optimized &&
-				(_galleryObject.GalleryObjectType == GalleryObjectType.Audio || _galleryObject.GalleryObjectType == GalleryObjectType.Video) &&
-				MediaConversionQueue.Instance.IsWaitingInQueueOrProcessing(MediaObjectId));
-
-			if (isInQueue)
-			{
-				return String.Format(CultureInfo.CurrentCulture, "<p class='gsp_item_process_msg'>{0}</p>", Resources.GalleryServerPro.UC_MediaObjectView_Media_Object_Being_Processed_Text);
-			}
-
-			bool isBrowserIncompatibleImage = (this.MimeType.MajorType.Equals("IMAGE", StringComparison.OrdinalIgnoreCase)) && (IsImageBrowserIncompatible());
-
-			string htmlOutput = GetHtmlOutputFromConfig();
-
-			if (isBrowserIncompatibleImage || String.IsNullOrEmpty(htmlOutput))
-			{
-				// Either (1) no applicable template exists or (2) this is an image that can't be natively displayed in a 
-				// browser (e.g. PSD, ICO, etc). Determine the appropriate message and return that as the HTML template.
-				var url = Utils.AddQueryStringParameter(GetMediaObjectUrl(), "sa=1"); // Get URL with the "send as attachment" query string parm
-				var msg = String.Format(CultureInfo.InvariantCulture, Resources.GalleryServerPro.UC_MediaObjectView_Browser_Cannot_Display_Media_Object_Text, url);
-				return String.Format(CultureInfo.InvariantCulture, "<p class='gsp_msgfriendly'>{0}</p>", msg);
-			}
-
-			return htmlOutput;
-		}
-
-		/// <summary>
-		/// Generate the ECMA script (javascript) that can be sent to a browser to assist with rendering the media object. 
+		/// Generate the JavaScript that can be sent to a browser to assist with rendering the media object. 
+		/// If <see cref="GalleryObject" /> is an <see cref="IAlbum" />, <see cref="String.Empty" /> is returned.
 		/// If the configuration file does not specify a scriptOutput template for this MIME type, an empty string is returned.
 		/// </summary>
-		/// <returns>Returns the ECMA script (javascript) that can be sent to a browser to assist with rendering the media object.</returns>
+		/// <returns>Returns the JavaScript that can be sent to a browser to assist with rendering the media object.</returns>
 		public string GenerateScript()
 		{
-			if (this._galleryObject is Album)
+			if (GalleryObject is IAlbum)
 				return String.Empty;
 
-			if ((this.MimeType.MajorType.Equals("IMAGE", StringComparison.OrdinalIgnoreCase)) && (IsImageBrowserIncompatible()))
+			if ((MimeType.MajorType.Equals("IMAGE", StringComparison.OrdinalIgnoreCase)) && (IsImageBrowserIncompatible()))
 				return String.Empty; // Browsers can't display this image.
 
-			string scriptOutput = GetScriptOutputFromConfig();
+			var scriptOutput = ScriptTemplate;
+
 			if (String.IsNullOrEmpty(scriptOutput))
 				return String.Empty; // No ECMA script rendering info in config file.
 
-			scriptOutput = scriptOutput.Replace("{HostUrl}", Utils.GetHostUrl());
+			scriptOutput = scriptOutput.Replace("{HostUrl}", HostUrl);
 			scriptOutput = scriptOutput.Replace("{MediaObjectUrl}", GetMediaObjectUrl());
-			scriptOutput = scriptOutput.Replace("{MimeType}", this.MimeType.BrowserMimeType);
-			scriptOutput = scriptOutput.Replace("{Width}", this.Width.ToString(CultureInfo.InvariantCulture));
-			scriptOutput = scriptOutput.Replace("{Height}", this.Height.ToString(CultureInfo.InvariantCulture));
-			scriptOutput = scriptOutput.Replace("{Title}", this.Title);
-			scriptOutput = scriptOutput.Replace("{TitleNoHtml}", Utils.RemoveHtmlTags(this.Title, true));
+			scriptOutput = scriptOutput.Replace("{MimeType}", MimeType.BrowserMimeType);
+			scriptOutput = scriptOutput.Replace("{Width}", Width.ToString(CultureInfo.InvariantCulture));
+			scriptOutput = scriptOutput.Replace("{Height}", Height.ToString(CultureInfo.InvariantCulture));
+			scriptOutput = scriptOutput.Replace("{Title}", GalleryObject.Title);
+			scriptOutput = scriptOutput.Replace("{TitleNoHtml}", Utils.RemoveHtmlTags(GalleryObject.Title, true));
 			scriptOutput = scriptOutput.Replace("{UniqueId}", UniquePrefixId);
 
-			bool autoStartMediaObject = Factory.LoadGallerySetting(GalleryId).AutoStartMediaObject;
+			var autoStartMediaObject = Factory.LoadGallerySetting(GalleryObject.GalleryId).AutoStartMediaObject;
 
 			// Replace {AutoStartMediaObjectText} with "true" or "false".
 			scriptOutput = scriptOutput.Replace("{AutoStartMediaObjectText}", autoStartMediaObject.ToString().ToLowerInvariant());
@@ -421,24 +364,88 @@ namespace GalleryServerPro.Web
 				scriptOutput = ReplaceMediaObjectRelativeUrlNoHandlerParameter(scriptOutput);
 
 			if (scriptOutput.Contains("{GalleryPath}"))
-				scriptOutput = scriptOutput.Replace("{GalleryPath}", Utils.GalleryRoot);
+				scriptOutput = scriptOutput.Replace("{GalleryPath}", GalleryRoot);
 
 			return scriptOutput;
 		}
 
 		/// <summary>
-		/// Generate the URL to the media object. For example, for images this url can be assigned to the src attribute of an img tag.
-		/// (ex: /galleryserverpro/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1)
-		/// The query string parameter will be encrypted if that option is enabled.
+		/// Generate an absolute URL to the gallery object. The url can be assigned to the src attribute of an img tag.
+		/// Ex: "http://site.com/gallery/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1"
+		/// The query string parameter will be encrypted if that option is enabled. If the <see cref="GalleryObject" />
+		/// is an album, the URL points to the album's thumbnail media object.
 		/// </summary>
-		/// <returns>Gets the URL to the media object.</returns>
-		public string GenerateUrl()
+		/// <returns>Gets the absolute URL to the gallery object.</returns>
+		public string GetMediaObjectUrl()
 		{
-			if (this._galleryObject is Album)
-				return GetAlbumUrl();
-			else
-				return GetMediaObjectUrl();
+			var queryString = String.Format(CultureInfo.InvariantCulture, "moid={0}&dt={1}&g={2}", MediaObjectId, (int)DisplayType, GalleryObject.GalleryId);
+
+			// If necessary, encrypt, then URL encode the query string.
+			if (AppSetting.Instance.EncryptMediaObjectUrlOnClient)
+			{
+				queryString = Utils.UrlEncode(HelperFunctions.Encrypt(queryString));
+			}
+
+			return String.Concat(HostUrl, GalleryRoot, "/handler/getmedia.ashx?", queryString);
 		}
+
+		/// <summary>
+		/// Get an absolute URL for the page containing the current gallery object. The URL refers to the page
+		/// specified in <see cref="DestinationPageUrl" />.
+		/// Examples: "http://site.com/gallery/default.aspx?moid=283", "http://site.com/gallery/default.aspx?aid=97"
+		/// </summary>
+		/// <returns>Returns an absolute URL for the page containing the current gallery object..</returns>
+		public string GetPageUrl()
+		{
+			if (GalleryObject is IAlbum)
+			{
+				return GetPageUrl(PageId.album, "aid={0}", GalleryObject.Id);
+			}
+
+			return GetPageUrl(PageId.mediaobject, "moid={0}", GalleryObject.Id);
+		}
+
+		/// <summary>
+		/// Generates the HTML to display a nicely formatted thumbnail image, including a
+		/// border, shadows and (possibly) rounded corners.
+		/// </summary>
+		/// <returns>Returns HTML that displays a nicely formatted thumbnail image.</returns>
+		public string GetThumbnailHtml()
+		{
+			return String.Format(CultureInfo.InvariantCulture, @"
+		<div class='gsp_i_c'>
+			<img src='{1}' title='{2}' alt='{2}' style='width:{0}px;height:{3}px;' class='gsp_thmb_img' />
+		</div>
+",
+																	GalleryObject.Thumbnail.Width, // 0
+																	GetMediaObjectUrl(), // 1
+																	Utils.HtmlEncode(Utils.RemoveHtmlTags(GalleryObject.Title)), // 2
+																	GalleryObject.Thumbnail.Height // 3
+				);
+		}
+
+		#endregion
+
+		#region Public Static Methods
+
+		/// <summary>
+		/// Gets an instance of <see cref="MediaObjectHtmlBuilderOptions" /> that can be supplied to the 
+		/// <see cref="MediaObjectHtmlBuilder" /> constructor. This method requires access to <see cref="HttpContext.Current" />.
+		/// </summary>
+		/// <param name="galleryObject">The gallery object. May be null. If null, <see cref="MediaObjectHtmlBuilderOptions.GalleryObject" />
+		/// must be assigned before passing this instance to the <see cref="MediaObjectHtmlBuilder" /> constructor.</param>
+		/// <param name="displayType">The display type. Optional. If not assigned or set to <see cref="DisplayObjectType.Unknown" />,
+		/// <see cref="MediaObjectHtmlBuilderOptions.DisplayType" /> must be assigned before passing this instance to the 
+		/// <see cref="MediaObjectHtmlBuilder" /> constructor.</param>
+		/// <returns>An instance of <see cref="MediaObjectHtmlBuilderOptions" />.</returns>
+		public static MediaObjectHtmlBuilderOptions GetMediaObjectHtmlBuilderOptions(IGalleryObject galleryObject, DisplayObjectType displayType = DisplayObjectType.Unknown)
+		{
+			return new MediaObjectHtmlBuilderOptions(galleryObject, displayType, Utils.GetBrowserIdsForCurrentRequest(), Utils.GetCurrentPageUrl(), Utils.IsAuthenticated, Utils.GetHostUrl(), Utils.AppRoot, Utils.GalleryRoot);
+		}
+
+		#endregion
+
+		#region Private Methods
 
 		/// <summary>
 		/// Replace the replacement parameter {MediaObjectAbsoluteUrlNoHandler} with an URL that points directly to the media object
@@ -456,16 +463,16 @@ namespace GalleryServerPro.Web
 		/// directory is not within the web application directory.</exception>
 		private string ReplaceMediaObjectAbsoluteUrlNoHandlerParameter(string htmlOutput)
 		{
-			string appPath = AppSetting.Instance.PhysicalApplicationPath;
+			var appPath = AppSetting.Instance.PhysicalApplicationPath;
 
-			if (!this.MediaObjectPhysicalPath.StartsWith(appPath, StringComparison.OrdinalIgnoreCase))
-				throw new BusinessException(String.Format(CultureInfo.CurrentCulture, "Expected this.MediaObjectPhysicalPath (\"{0}\") to start with AppSetting.Instance.PhysicalApplicationPath (\"{1}\"), but it did not. If the media objects are not stored within the Gallery Server Pro web application, you cannot use the MediaObjectAbsoluteUrlNoHandler replacement parameter. Instead, use MediaObjectRelativeUrlNoHandler and specify the virtual path to your media object directory in the HTML template. For example: HtmlTemplate=\"<a href=\"{{HostUrl}}/media{{MediaObjectRelativeUrlNoHandler}}\">Click to open</a>\"", this.MediaObjectPhysicalPath, appPath));
+			if (!MediaObjectPhysicalPath.StartsWith(appPath, StringComparison.OrdinalIgnoreCase))
+				throw new BusinessException(String.Format(CultureInfo.CurrentCulture, "Expected this.MediaObjectPhysicalPath (\"{0}\") to start with AppSetting.Instance.PhysicalApplicationPath (\"{1}\"), but it did not. If the media objects are not stored within the Gallery Server Pro web application, you cannot use the MediaObjectAbsoluteUrlNoHandler replacement parameter. Instead, use MediaObjectRelativeUrlNoHandler and specify the virtual path to your media object directory in the HTML template. For example: HtmlTemplate=\"<a href=\"{{HostUrl}}/media{{MediaObjectRelativeUrlNoHandler}}\">Click to open</a>\"", MediaObjectPhysicalPath, appPath));
 
-			string relativePath = this.MediaObjectPhysicalPath.Remove(0, appPath.Length).Trim(new char[] { System.IO.Path.DirectorySeparatorChar });
+			var relativePath = MediaObjectPhysicalPath.Remove(0, appPath.Length).Trim(new[] { System.IO.Path.DirectorySeparatorChar });
 
 			relativePath = Utils.UrlEncode(relativePath, '\\');
 
-			string directUrl = String.Concat(Utils.UrlEncode(Utils.AppRoot, '/'), "/", relativePath.Replace("\\", "/"));
+			var directUrl = String.Concat(Utils.UrlEncode(AppRoot, '/'), "/", relativePath.Replace("\\", "/"));
 
 			return htmlOutput.Replace("{MediaObjectAbsoluteUrlNoHandler}", directUrl);
 		}
@@ -494,350 +501,232 @@ namespace GalleryServerPro.Web
 		/// </example>
 		private string ReplaceMediaObjectRelativeUrlNoHandlerParameter(string htmlOutput)
 		{
-			string moPath = Factory.LoadGallerySetting(_galleryId).FullMediaObjectPath;
+			var moPath = Factory.LoadGallerySetting(GalleryObject.GalleryId).FullMediaObjectPath;
 
-			if (!this.MediaObjectPhysicalPath.StartsWith(moPath, StringComparison.OrdinalIgnoreCase))
-				throw new BusinessException(String.Format(CultureInfo.CurrentCulture, "Expected this.MediaObjectPhysicalPath (\"{0}\") to start with AppSetting.Instance.MediaObjectPhysicalPath (\"{1}\"), but it did not.", this.MediaObjectPhysicalPath, moPath));
+			if (!MediaObjectPhysicalPath.StartsWith(moPath, StringComparison.OrdinalIgnoreCase))
+				throw new BusinessException(String.Format(CultureInfo.CurrentCulture, "Expected this.MediaObjectPhysicalPath (\"{0}\") to start with AppSetting.Instance.MediaObjectPhysicalPath (\"{1}\"), but it did not.", MediaObjectPhysicalPath, moPath));
 
-			string relativePath = this.MediaObjectPhysicalPath.Remove(0, moPath.Length).Trim(new char[] { System.IO.Path.DirectorySeparatorChar });
+			var relativePath = MediaObjectPhysicalPath.Remove(0, moPath.Length).Trim(new[] { System.IO.Path.DirectorySeparatorChar });
 
 			relativePath = Utils.UrlEncode(relativePath, '\\');
 
-			string relativeUrl = String.Concat("/", relativePath.Replace("\\", "/"));
+			var relativeUrl = String.Concat("/", relativePath.Replace("\\", "/"));
 
 			return htmlOutput.Replace("{MediaObjectRelativeUrlNoHandler}", relativeUrl);
 		}
 
 		/// <summary>
-		/// Gets the HTML template information from the configuration file. If the configuration file
-		/// does not specify an HTML template for the MIME type of this media object, an empty string is returned.
-		/// </summary>
-		/// <returns>Returns the HTML template information from the configuration file.</returns>
-		private string GetHtmlOutputFromConfig()
-		{
-			IMediaTemplate browserTemplate = this.MimeType.GetMediaTemplate(this.Browsers);
-
-			return (browserTemplate == null ? String.Empty : browserTemplate.HtmlTemplate);
-		}
-
-		/// <summary>
-		/// Gets the ECMA script template information from the configuration file. If the configuration file
-		/// does not specify an ECMA script template for the MIME type of this media object, an empty string is returned.
-		/// </summary>
-		/// <returns>Returns the ECMA script template information from the configuration file.</returns>
-		private string GetScriptOutputFromConfig()
-		{
-			IMediaTemplate browserTemplate = this.MimeType.GetMediaTemplate(this.Browsers);
-
-			return (browserTemplate == null ? String.Empty : browserTemplate.ScriptTemplate);
-		}
-
-		/// <summary>
 		/// Determines if the image can be displayed in a standard web browser. For example, JPG, JPEG, PNG and GIF images can
-		/// display, WMF and TIF cannot.
+		/// be displayed; WMF and TIF cannot.
 		/// </summary>
 		/// <returns>Returns true if the image cannot be displayed in a standard browser (e.g. WMF, TIF); returns false if it can
 		/// (e.g. JPG, JPEG, PNG and GIF).</returns>
 		private bool IsImageBrowserIncompatible()
 		{
-			string originalFileExtension = System.IO.Path.GetExtension(this.MediaObjectPhysicalPath).ToLowerInvariant();
+			var extension = System.IO.Path.GetExtension(MediaObjectPhysicalPath);
 
-			return Array.IndexOf<string>(Factory.LoadGallerySetting(this.GalleryId).ImageTypesStandardBrowsersCanDisplay, originalFileExtension) < 0;
-		}
-
-		private string GetAlbumUrl()
-		{
-			return GetMediaObjectUrl(GalleryId, ((IAlbum)this._galleryObject).ThumbnailMediaObjectId, DisplayType);
-		}
-
-		private string GetMediaObjectUrl()
-		{
-			return GetMediaObjectUrl(GalleryId, MediaObjectId, DisplayType);
-		}
-
-		#endregion
-
-		#region Public Static Methods
-
-		/// <summary>
-		/// Generate the URL to the media object. For example, for images this url can be assigned to the src attribute of an img tag.
-		/// (ex: /galleryserverpro/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1)
-		/// The query string parameter will be encrypted if that option is enabled.
-		/// </summary>
-		/// <param name="galleryId">The gallery ID.</param>
-		/// <param name="mediaObjectId">The unique identifier for the media object.</param>
-		/// <param name="displayType">The type of the display object.</param>
-		/// <returns>Gets the URL to the media object.</returns>
-		public static string GenerateUrl(int galleryId, int mediaObjectId, DisplayObjectType displayType)
-		{
-			return GetMediaObjectUrl(galleryId, mediaObjectId, displayType);
-		}
-
-		/// <summary>
-		/// Generates the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject"/>, including a
-		/// border, shadows and (possibly) rounded corners.
-		/// </summary>
-		/// <param name="galleryObject">The gallery object to be used as the source for the thumbnail image.</param>
-		/// <param name="browserCaps">The browser capabilities. This may be found at Request.Browser.</param>
-		/// <param name="includeHyperlinkToObject">if set to <c>true</c> wrap the image tag with a hyperlink so the user can click through
-		/// to the media object view of the item.</param>
-		/// <returns>
-		/// Returns HTML that displays a nicely formatted thumbnail image of the specified <paramref name="galleryObject"/>
-		/// </returns>
-		public static string GenerateThumbnailHtml(IGalleryObject galleryObject, HttpBrowserCapabilities browserCaps, bool includeHyperlinkToObject)
-		{
-			if (IsInternetExplorer1To8(browserCaps))
+			if (extension == null)
 			{
-				return GenerateThumbnailHtmlForIE1To8(galleryObject, includeHyperlinkToObject);
+				return false;
 			}
 
-			return GenerateThumbnailHtmlForStandardBrowser(galleryObject, includeHyperlinkToObject);
-		}
+			var originalFileExtension = extension.ToLowerInvariant();
 
-		#endregion
-
-		#region Private Static Methods
-
-		private static string GetMediaObjectUrl(int galleryId, int mediaObjectId, DisplayObjectType displayType)
-		{
-			//string queryString = String.Format(CultureInfo.InvariantCulture, "moid={1}&aid={2}&mo={3}&mtc={4}&dt={5}&isp={6}", galleryId, mediaObjectId, albumId, Uri.EscapeDataString(mediaObjectPhysicalPath), (int)mimeType.TypeCategory, (int)displayType, isPrivate.ToString());
-			string queryString = String.Format(CultureInfo.InvariantCulture, "moid={0}&dt={1}&g={2}", mediaObjectId, (int)displayType, galleryId);
-
-			// If necessary, encrypt, then URL encode the query string.
-			if (AppSetting.Instance.EncryptMediaObjectUrlOnClient)
-				queryString = Utils.UrlEncode(HelperFunctions.Encrypt(queryString));
-
-			return string.Concat(Utils.GalleryRoot, "/handler/getmedia.ashx?", queryString);
+			return Array.IndexOf(Factory.LoadGallerySetting(GalleryObject.GalleryId).ImageTypesStandardBrowsersCanDisplay, originalFileExtension) < 0;
 		}
 
 		/// <summary>
-		/// Determines whether the browser specified in <paramref name="browserCaps" /> is Internet Explorer 1 to 8.
+		/// Gets the HTML template to use for rendering this media object. Guaranteed to not
+		/// return null.
 		/// </summary>
-		/// <param name="browserCaps">The browser capabilities. This may be found at Request.Browser.</param>
-		/// <returns>
-		/// 	<c>true</c> if browser is Internet Explorer 1 to 8; otherwise, <c>false</c>.
-		/// </returns>
-		private static bool IsInternetExplorer1To8(HttpBrowserCapabilities browserCaps)
+		/// <returns>Returns a string.</returns>
+		private string GetHtmlTemplate()
 		{
-			bool isIE1To8 = false;
-
-			if (browserCaps.Browser.Equals("IE", StringComparison.OrdinalIgnoreCase))
+			if (DisplayType == DisplayObjectType.External)
 			{
-				decimal version;
-				if (Decimal.TryParse(browserCaps.Version, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out version) && (version < (decimal)9.0))
-				{
-					isIE1To8 = true;
-				}
+				return DisplayObject.ExternalHtmlSource;
 			}
 
-			return isIE1To8;
-		}
+			var isInQueue = (DisplayType == DisplayObjectType.Optimized &&
+				(GalleryObject.GalleryObjectType == GalleryObjectType.Audio || GalleryObject.GalleryObjectType == GalleryObjectType.Video) &&
+				MediaConversionQueue.Instance.IsWaitingInQueueOrProcessing(MediaObjectId));
 
-		/// <summary>
-		/// Generates the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject" />, including a 
-		/// border and shadows. This function generates a drop shadow using the technique described at http://www.positioniseverything.net/articles/dropshadows.html
-		/// Since all other modern browsers, including IE9, support box shadows using native CSS commands, this function is only used for
-		/// IE 1 to 8.
-		/// </summary>
-		/// <param name="galleryObject">The gallery object to be used as the source for the thumbnail image.</param>
-		/// <param name="includeHyperlinkToObject">if set to <c>true</c> wrap the image tag with a hyperlink so the user can click through
-		/// to the media object view of the item.</param>
-		/// <returns>Returns HTML that displays a nicely formatted thumbnail image of the specified <paramref name="galleryObject" /></returns>
-		private static string GenerateThumbnailHtmlForIE1To8(IGalleryObject galleryObject, bool includeHyperlinkToObject)
-		{
-			string html = String.Format(CultureInfo.InvariantCulture, @"
-				<div class='op0' style='width:{0}px;height:{1}px;'>
-					<div class='op1'>
-						<div class='op2'>
-							<div class='sb'>
-								<div class='ib'>
-									{2}
-										<img src='{3}' title='{4}' alt='{4}' style='width:{5}px;height:{6}px;' />
-									{7}
-								</div>								
-							</div>
-						</div>
-					</div>
-				</div>
-			", // 0
-																	galleryObject.Thumbnail.Width + 15, // 0
-																	galleryObject.Thumbnail.Height + 10, // 1
-																	GenerateHyperlinkBegin(galleryObject, includeHyperlinkToObject), // 2
-																	GetThumbnailUrl(galleryObject), // 3
-																	GetHovertip(galleryObject), // 4
-																	galleryObject.Thumbnail.Width, // 5
-																	galleryObject.Thumbnail.Height, // 6
-																	GenerateHyperlinkEnd(includeHyperlinkToObject) // 7
-				);
-
-			return html;
-		}
-
-		/// <summary>
-		/// Generates the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject" />, including a 
-		/// border, shadows and rounded corners. This function generates a drop shadow using native CSS keywords.
-		/// This works for all modern browsers except IE up until version 9, which finally added support.
-		/// </summary>
-		/// <param name="galleryObject">The gallery object to be used as the source for the thumbnail image.</param>
-		/// <param name="includeHyperlinkToObject">if set to <c>true</c> wrap the image tag with a hyperlink so the user can click through
-		/// to the media object view of the item.</param>
-		/// <returns>Returns HTML that displays a nicely formatted thumbnail image of the specified <paramref name="galleryObject" /></returns>
-		private static string GenerateThumbnailHtmlForStandardBrowser(IGalleryObject galleryObject, bool includeHyperlinkToObject)
-		{
-			string html = String.Format(CultureInfo.InvariantCulture, @"
-		<div class='gsp_i_c'>
-			{1}
-				<img src='{2}' title='{3}' alt='{3}' style='width:{0}px;height:{4}px;' class='gsp_thmb_img' />
-			{5}
-		</div>
-", // 0
-																	galleryObject.Thumbnail.Width, // 0
-																	GenerateHyperlinkBegin(galleryObject, includeHyperlinkToObject), // 1
-																	GetThumbnailUrl(galleryObject), // 2
-																	GetHovertip(galleryObject), // 3
-																	galleryObject.Thumbnail.Height, // 4
-																	GenerateHyperlinkEnd(includeHyperlinkToObject) // 5
-				);
-
-			return html;
-		}
-
-		private static string GenerateHyperlinkBegin(IGalleryObject galleryObject, bool generateHyperlink)
-		{
-			string html = String.Empty;
-
-			if (generateHyperlink)
+			if (isInQueue)
 			{
-				html = String.Format(CultureInfo.InvariantCulture, @"<a href='{0}' class='gsp_thmbLink' title='{1}'>",
-														 GenerateUrl(galleryObject), // 0
-														 GetHovertip(galleryObject)); // 1
+				return String.Format(CultureInfo.CurrentCulture, "<p class='gsp_item_process_msg'>{0}</p>", Resources.GalleryServerPro.UC_MediaObjectView_Media_Object_Being_Processed_Text);
 			}
 
-			return html;
+			var isBrowserIncompatibleImage = (MimeType.MajorType.Equals("IMAGE", StringComparison.OrdinalIgnoreCase)) && (IsImageBrowserIncompatible());
+
+			var htmlOutput = HtmlTemplate;
+
+			if (isBrowserIncompatibleImage || String.IsNullOrEmpty(htmlOutput))
+			{
+				// Either (1) no applicable template exists or (2) this is an image that can't be natively displayed in a 
+				// browser (e.g. PSD, ICO, etc). Determine the appropriate message and return that as the HTML template.
+				var url = Utils.AddQueryStringParameter(GetMediaObjectUrl(), "sa=1"); // Get URL with the "send as attachment" query string parm
+				var msg = String.Format(CultureInfo.InvariantCulture, Resources.GalleryServerPro.UC_MediaObjectView_Browser_Cannot_Display_Media_Object_Text, url);
+				return String.Format(CultureInfo.InvariantCulture, "<p class='gsp_msgfriendly'>{0}</p>", msg);
+			}
+
+			return htmlOutput;
 		}
 
-		private static string GenerateHyperlinkEnd(bool generateHyperlink)
+
+		/// <summary>
+		/// Get an absolute URL for the requested page (eg. "http://site.com/gallery/default.aspx?moid=283").
+		/// This works similar to <see cref="Utils.GetUrl(PageId, string, object[])" /> except this has no 
+		/// dependence on <see cref="HttpContext.Current" /> and it returns an absolute URL instead of a relative one.
+		/// </summary>
+		/// <param name="page">A <see cref="PageId"/> enumeration that represents the desired <see cref="Pages.GalleryPage"/>.</param>
+		/// <param name="format">A format string whose placeholders are replaced by values in <paramref name="args"/>. Do not use a '?'
+		/// or '&amp;' at the beginning of the format string. Example: "msg={0}".</param>
+		/// <param name="args">The values to be inserted into the <paramref name="format"/> string.</param>
+		/// <returns>Returns an absolute URL for the requested <paramref name="page"/>.</returns>
+		private string GetPageUrl(PageId page, string format, params object[] args)
 		{
-			return (generateHyperlink ? "</a>" : String.Empty);
+			var queryString = String.Format(CultureInfo.InvariantCulture, format, args);
+
+			if ((page != PageId.album) && (page != PageId.mediaobject))
+			{
+				// Don't use the "g" parameter for album or mediaobject pages, since we can deduce it by looking for the 
+				// aid or moid query string parms. This results in a shorter, cleaner URL.
+				queryString = String.Concat("g=", page, "&", queryString);
+			}
+
+			return Utils.AddQueryStringParameter(String.Concat(HostUrl, DestinationPageUrl), queryString);
 		}
 
 		/// <summary>
-		/// Generates an URL to the current web page that points to the specified <paramref name="galleryObject" /> in the query string.
-		/// Examples: /dev/gs/default.aspx?moid=2, /dev/gs/default.aspx?aid=5
+		/// Gets the media object ID for the album thumbnail. Relevant only when <see cref="GalleryObject" /> is 
+		/// an <see cref="IAlbum" /> and <see cref="DisplayType" /> is <see cref="DisplayObjectType.Thumbnail" />;
+		/// otherwise a <see cref="WebException" /> is thrown.
 		/// </summary>
-		/// <param name="galleryObject">The gallery object to be linked to.</param>
-		/// <returns>Returns an URL to the current web page that points to the gallery object.</returns>
-		private static string GenerateUrl(IGalleryObject galleryObject)
+		/// <returns>The media object ID for the album thumbnail.</returns>
+		/// <exception cref="WebException">Thrown when <see cref="GalleryObject" /> is not an <see cref="IAlbum" /> 
+		/// or <see cref="DisplayType" /> is not <see cref="DisplayObjectType.Thumbnail" /></exception>
+		private int GetAlbumThumbnailId()
 		{
-			string rv;
-
-			if (galleryObject is Album)
+			if (!(GalleryObject is IAlbum))
 			{
-				// We have an album.
-				rv = String.Concat(Utils.GetUrl(PageId.album, "aid={0}", galleryObject.Id));
-			}
-			else
-			{
-				rv = String.Concat(Utils.GetUrl(PageId.mediaobject, "moid={0}", galleryObject.Id));
+				throw new WebException(String.Format("The function GetAlbumThumbnailId should be called only when the gallery object is an album. Instead, it was a {0}.", GalleryObject.GalleryObjectType));
 			}
 
-			if (String.IsNullOrEmpty(rv))
-				throw new WebException("Unsupported media object type: " + galleryObject.GetType());
-
-			return rv;
-		}
-
-		/// <summary>
-		/// Return a string representing the title of the album. It is truncated and purged of
-		/// HTML tags if necessary.  Returns an empty string if the gallery object is not an album
-		/// (<paramref name="galleryObjectType"/> != typeof(<see cref="Album"/>))
-		/// </summary>
-		/// <param name="title">The title of the album as stored in the data store.</param>
-		/// <param name="galleryObjectType">The type of the object to which the title belongs.</param>
-		/// <param name="gallerySettings">The gallery settings.</param>
-		/// <param name="allowAlbumTextWrapping">Indicates whether to allow the album title to wrap to a new line when required. When false,
-		/// the CSS class "gsp_nowrap" is specified to prevent wrapping.</param>
-		/// <returns>
-		/// Returns a string representing the title of the album. It is truncated (if necessary)
-		/// and purged of HTML tags.
-		/// </returns>
-		private static string GetAlbumText(string title, Type galleryObjectType, IGallerySettings gallerySettings, bool allowAlbumTextWrapping)
-		{
-			if (galleryObjectType != typeof(Album))
-				return String.Empty;
-
-			int maxLength = gallerySettings.MaxThumbnailTitleDisplayLength;
-			string truncatedText = Utils.TruncateTextForWeb(title, maxLength);
-			string nowrap = (allowAlbumTextWrapping ? String.Empty : " gsp_nowrap");
-
-			if (truncatedText.Length != title.Length)
-				return String.Format(CultureInfo.CurrentCulture, "<p class=\"albumtitle {0}\"><b>{1}</b> {2}...</p>", nowrap, Resources.GalleryServerPro.UC_ThumbnailView_Album_Title_Prefix_Text, truncatedText);
-			else
-				return String.Format(CultureInfo.CurrentCulture, "<p class=\"albumtitle {0}\"><b>{1}</b> {2}</p>", nowrap, Resources.GalleryServerPro.UC_ThumbnailView_Album_Title_Prefix_Text, truncatedText);
-		}
-
-		private static string GetHovertip(IGalleryObject galleryObject)
-		{
-			// Return the text to be used as the hovertip in standards compliant browsers. This is the
-			// summary text for albums, and the title text for objects.
-			string hoverTip = galleryObject.Title;
-
-			IAlbum album = galleryObject as IAlbum;
-			if (album != null)
+			if (DisplayType != DisplayObjectType.Thumbnail)
 			{
-				if (album.Caption.Trim().Length > 0)
-					hoverTip = album.Caption;
+				throw new WebException(String.Format("The function GetAlbumThumbnailId should be called only when the display type is DisplayObjectType.Thumbnail. Instead, it was a {0}.", DisplayType));
 			}
 
-			string hoverTipClean = Utils.HtmlEncode(Utils.RemoveHtmlTags(hoverTip));
-
-			return hoverTipClean;
-		}
-
-		/// <summary>
-		/// Get the URL to the thumbnail image of the specified gallery object. Either a media object or album may be specified. Example:
-		/// /dev/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1
-		/// The URL can be used to assign to the src attribute of an image tag (&lt;img src='...' /&gt;).
-		/// </summary>
-		/// <param name="galleryObject">The gallery object for which an URL to its thumbnail image is to be generated.
-		/// Either a media object or album may be specified.</param>
-		/// <returns>Returns the URL to the thumbnail image of the specified gallery object.</returns>
-		private static string GetThumbnailUrl(IGalleryObject galleryObject)
-		{
-			if (galleryObject is Album)
-				return GetAlbumThumbnailUrl(galleryObject);
-			else
-				return GenerateUrl(galleryObject.GalleryId, galleryObject.Id, DisplayObjectType.Thumbnail);
-		}
-
-		private static string GetAlbumThumbnailUrl(IGalleryObject galleryObject)
-		{
-			// Get a reference to the path to the thumbnail. If the user is anonymous and the thumbnail is from a private
-			// media object or album, then specify 0 for the media object ID. This will be interpreted
-			// by the image handler to generate a default, empty thumbnail image.
-			int mediaObjectId = galleryObject.Thumbnail.MediaObjectId;
-
-			if (!Utils.IsAuthenticated && (galleryObject.Thumbnail.MediaObjectId > 0))
+			if (GalleryObject.Thumbnail.MediaObjectId > 0)
 			{
 				try
 				{
-					IGalleryObject mediaObject = Factory.LoadMediaObjectInstance(galleryObject.Thumbnail.MediaObjectId);
-					if (mediaObject.Parent.IsPrivate || mediaObject.IsPrivate)
+					var mediaObject = Factory.LoadMediaObjectInstance(GalleryObject.Thumbnail.MediaObjectId);
+
+					if (IsAuthenticated || (!mediaObject.Parent.IsPrivate && !mediaObject.IsPrivate))
 					{
-						mediaObjectId = 0;
+						return mediaObject.Id;
 					}
 				}
 				catch (InvalidMediaObjectException)
 				{
 					// We'll get here if the ID for the thumbnail doesn't represent an existing media object.
-					mediaObjectId = 0;
 				}
 			}
 
-			return GenerateUrl(galleryObject.GalleryId, mediaObjectId, DisplayObjectType.Thumbnail);
+			return 0; // 0 is a signal to getmedia.ashx to generate an empty album thumbnail image
 		}
 
 		#endregion
+	}
 
+	/// <summary>
+	/// Contains options that direct the creation of HTML and URLs for a media object.
+	/// </summary>
+	public class MediaObjectHtmlBuilderOptions
+	{
+		/// <summary>
+		/// Gets or sets the gallery object. Must be assigned to a value before this instance can be passed to the 
+		/// <see cref="MediaObjectHtmlBuilder" /> constructor.
+		/// </summary>
+		public IGalleryObject GalleryObject { get; set; }
+
+		/// <summary>
+		/// Gets or sets the display type. Must be assigned to a value other than <see cref="DisplayObjectType.Unknown" />
+		/// before this instance can be passed to the <see cref="MediaObjectHtmlBuilder" /> constructor.
+		/// </summary>
+		public DisplayObjectType DisplayType { get; set; }
+
+		/// <summary>
+		/// Gets the browser IDs for current request.
+		/// </summary>
+		public Array Browsers { get; private set; }
+
+		/// <summary>
+		/// Gets or sets the URL, relative to the website root and optionally including any query string parameters,
+		/// to the page any generated URLs should point to. Examples: "/dev/gs/gallery.aspx",
+		/// "/dev/gs/gallery.aspx?g=admin_email&amp;aid=2389"
+		/// </summary>
+		public string DestinationPageUrl { get; set; }
+
+		/// <summary>
+		/// Gets a value indicating whether the current user is authenticated.
+		/// </summary>
+		/// <value><c>true</c> if the current user is authenticated; otherwise, <c>false</c>.</value>
+		public bool IsAuthenticated { get; private set; }
+
+		/// <summary>
+		/// Gets the URI scheme, DNS host name or IP address, and port number for the current application. 
+		/// Examples: "http://www.site.com", "http://localhost", "http://127.0.0.1", "http://godzilla"
+		/// </summary>
+		public string HostUrl { get; private set; }
+
+		/// <summary>
+		/// Gets the path, relative to the web site root, to the current web application.
+		/// Example: "/dev/gallery".
+		/// </summary>
+		public string AppRoot { get; private set; }
+
+		/// <summary>
+		/// Gets the path, relative to the web site root, to the directory containing the Gallery Server Pro user 
+		/// controls and other resources. Example: "/dev/gallery/gs".
+		/// </summary>
+		public string GalleryRoot { get; private set; }
+
+		/// <summary>
+		/// Private constructor. Prevents a default instance of the <see cref="MediaObjectHtmlBuilderOptions"/> class from being created.
+		/// </summary>
+		private MediaObjectHtmlBuilderOptions() { }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MediaObjectHtmlBuilderOptions"/> class.
+		/// </summary>
+		/// <param name="galleryObject">The gallery object. May be null. If null, <see cref="MediaObjectHtmlBuilderOptions.GalleryObject" />
+		/// must be assigned before passing this instance to the <see cref="MediaObjectHtmlBuilder" /> constructor.</param>
+		/// <param name="displayType">The display type. Optional. If not assigned or set to <see cref="DisplayObjectType.Unknown" />,
+		/// <see cref="MediaObjectHtmlBuilderOptions.DisplayType" /> must be assigned before passing this instance to the 
+		/// <see cref="MediaObjectHtmlBuilder" /> constructor.</param>
+		/// <param name="browsers">The browser IDs for current request.</param>
+		/// <param name="destinationPageUrl">The URL, relative to the website root and optionally including any query string parameters,
+		/// to the page any generated URLs should point to. Examples: "/dev/gs/gallery.aspx", 
+		/// "/dev/gs/gallery.aspx?g=admin_email&amp;aid=2389"</param>
+		/// <param name="isAuthenticated">If set to <c>true</c> the current user is authenticated.</param>
+		/// <param name="hostUrl">The URI scheme, DNS host name or IP address, and port number for the current application. 
+		/// Examples: "http://www.site.com", "http://localhost", "http://127.0.0.1", "http://godzilla"</param>
+		/// <param name="appRoot">The path, relative to the web site root, to the current web application.
+		/// Example: "/dev/gallery".</param>
+		/// <param name="galleryRoot">The path, relative to the web site root, to the directory containing the Gallery Server Pro user 
+		/// controls and other resources. Example: "/dev/gallery/gs".</param>
+		public MediaObjectHtmlBuilderOptions(IGalleryObject galleryObject, DisplayObjectType displayType, Array browsers, string destinationPageUrl, bool isAuthenticated, string hostUrl, string appRoot, string galleryRoot)
+		{
+			GalleryObject = galleryObject;
+			DisplayType = displayType;
+			Browsers = browsers;
+			DestinationPageUrl = destinationPageUrl;
+			IsAuthenticated = isAuthenticated;
+			HostUrl = hostUrl;
+			AppRoot = appRoot;
+			GalleryRoot = galleryRoot;
+		}
 	}
 }

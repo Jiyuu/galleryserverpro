@@ -17,6 +17,14 @@ namespace GalleryServerPro.Web.Entity
 
 		public string HdrCreateAccountLinkText { get; set; }
 
+		public string LpRecent { get; set; }
+
+		public string LpTopRated { get; set; }
+
+		public string LpTags { get; set; }
+
+		public string LpPeople { get; set; }
+
 		public string AbmPfx { get; set; }
 
 		public string AbmIsPvtTt { get; set; }
@@ -49,6 +57,8 @@ namespace GalleryServerPro.Web.Entity
 
 		public string AbmOwnrTtDtl { get; set; }
 
+		public string AbmRssTt { get; set; }
+
 		public string AbmPgrNextTt { get; set; }
 
 		public string AbmPgrPrevTt { get; set; }
@@ -70,6 +80,8 @@ namespace GalleryServerPro.Web.Entity
 		public string AbmRvsSortTt { get; set; }
 
 		public string AbmSortbyTt { get; set; }
+
+		public string AbmSortbyCustom { get; set; }
 
 		public string AbmSortbyTitle { get; set; }
 

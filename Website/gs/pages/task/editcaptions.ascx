@@ -14,20 +14,20 @@
 	<asp:PlaceHolder ID="phTaskHeader" runat="server" />
 	<asp:Repeater ID="rptr" runat="server">
 		<HeaderTemplate>
-			<div class="gsp_floatcontainer">
+			<ul class="gsp_floatcontainer">
 		</HeaderTemplate>
 		<ItemTemplate>
-			<div class="thmb">
+			<li class="thmb">
 				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem) %>
 				<p>
 					<textarea id="ta" runat="server" rows="5" cols="17" class="textareaEditCaption" onfocus="javascript:this.select();"
 						name="ta"><%# Eval("Title") %></textarea>
 					<input id="Hidden1" runat="server" type="hidden" value='<%# Eval("ID") %>' />
 				</p>
-			</div>
+			</li>
 		</ItemTemplate>
 		<FooterTemplate>
-			</div>
+			</ul>
 		</FooterTemplate>
 	</asp:Repeater>
 	<asp:PlaceHolder ID="phTaskFooter" runat="server" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using GalleryServerPro.Business.Interfaces;
+using GalleryServerPro.Data;
 
 namespace GalleryServerPro.Business
 {
@@ -87,8 +88,8 @@ namespace GalleryServerPro.Business
 
 			switch (ProductKey)
 			{
-				case GlobalConstants.ProductKeyGpl:
-				case GlobalConstants.ProductKeyProfessional:
+				case Constants.ProductKeyGpl:
+				case Constants.ProductKeyProfessional:
 					if (!IsInTrialPeriod && AppSetting.Instance.ProviderDataStore == ProviderDataStore.SqlServer)
 					{
 						KeyInvalidReason = "SQL Server detected. The product key you entered requires the use of SQL CE for the data store. You must switch to SQL CE or, if you wish to continue using SQL Server, purchase an Enterprise license. SQL Server offers faster performance and greater reliability. We highly recommend it.";
@@ -98,11 +99,11 @@ namespace GalleryServerPro.Business
 					else
 					{
 						IsValid = true;
-						LicenseType = (ProductKey.Equals(GlobalConstants.ProductKeyProfessional) ? LicenseLevel.Professional : LicenseLevel.Gpl);
+						LicenseType = (ProductKey.Equals(Constants.ProductKeyProfessional) ? LicenseLevel.Professional : LicenseLevel.Gpl);
 					}
 					break;
 
-				case GlobalConstants.ProductKeyEnterprise:
+				case Constants.ProductKeyEnterprise:
 					IsValid = true;
 					LicenseType = LicenseLevel.Enterprise;
 					break;

@@ -106,7 +106,7 @@ namespace GalleryServerPro.Web.Pages.Task
 
 			tvUC.RequiredSecurityPermissions = SecurityActions.AddChildAlbum;
 			IAlbum albumToSelect = this.GetAlbum();
-			if (!IsUserAuthorized(SecurityActions.AddChildAlbum, albumToSelect))
+			if (albumToSelect.IsVirtualAlbum || !IsUserAuthorized(SecurityActions.AddChildAlbum, albumToSelect))
 			{
 				albumToSelect = AlbumController.GetHighestLevelAlbumWithCreatePermission(GalleryId);
 			}

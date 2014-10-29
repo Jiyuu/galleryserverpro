@@ -71,7 +71,7 @@ namespace GalleryServerPro.Web.Pages
 
 		private void ConfigureControlsFirstTime()
 		{
-			tvUC.ShowCheckbox = ShowCheckbox;
+			tvUC.EnableCheckboxPlugin = ShowCheckbox;
 			tvUC.RequiredSecurityPermissions = Business.SecurityActions.ViewAlbumOrMediaObject;
 
 			if (!String.IsNullOrEmpty(GalleryControl.TreeViewNavigateUrl))

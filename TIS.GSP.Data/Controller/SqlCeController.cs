@@ -165,6 +165,25 @@ namespace GalleryServerPro.Data
 			//}
 		}
 
+		/// <summary>
+		/// Deletes all records from the SQL CE Event table using the SQL 'DELETE FROM Event'. This is more efficient
+		/// than using EF to clear the table and is also the only way to clear the table when this SQL CE bug
+		/// (http://connect.microsoft.com/SQLServer/feedback/details/606152) prevents the code from retrieving EventDto
+		/// records.
+		/// </summary>
+		public void ClearEventLog()
+		{
+			using (var cn = new SqlCeConnection(ConnectionString))
+			{
+				using (var cmd = cn.CreateCommand())
+				{
+					cmd.CommandText = String.Format("DELETE FROM {0}", Utils.GetSqlName("Event", Business.ProviderDataStore.SqlCe));
+					cn.Open();
+					cmd.ExecuteNonQuery();
+				}
+			}
+		}
+
 		#endregion
 
 		#region Functions

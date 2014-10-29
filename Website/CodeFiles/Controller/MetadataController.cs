@@ -58,15 +58,15 @@ namespace GalleryServerPro.Web.Controller
 			bool isEditable = Factory.LoadGallerySetting(go.GalleryId).MetadataDisplaySettings.Find(md.MetadataItemName).IsEditable;
 
 			return new Entity.MetaItem
-			{
-				Id = md.MediaObjectMetadataId,
-				MediaId = galleryObjectId,
-				MTypeId = (int)md.MetadataItemName,
-				GTypeId = (int)goType,
-				Desc = md.Description,
-				Value = md.Value,
-				IsEditable = isEditable
-			};
+						 {
+							 Id = md.MediaObjectMetadataId,
+							 MediaId = galleryObjectId,
+							 MTypeId = (int)md.MetadataItemName,
+							 GTypeId = (int)goType,
+							 Desc = md.Description,
+							 Value = md.Value,
+							 IsEditable = isEditable
+						 };
 		}
 
 		/// <summary>
@@ -272,6 +272,28 @@ namespace GalleryServerPro.Web.Controller
 		}
 
 		/// <summary>
+		/// Gets a value indicating whether the logged-on user has edit permission for all of the <paramref name="galleryItems" />.
+		/// </summary>
+		/// <param name="galleryItems">A collection of <see cref="Entity.GalleryItem" /> instances.</param>
+		/// <returns><c>true</c> if the current user can edit the items; <c>false</c> otherwise.</returns>
+		public static bool CanUserEditAllItems(IEnumerable<Entity.GalleryItem> galleryItems)
+		{
+			try
+			{
+				foreach (var galleryItem in galleryItems)
+				{
+					GetGalleryObjectAndVerifyEditPermission(galleryItem);
+				}
+
+				return true;
+			}
+			catch (GallerySecurityException)
+			{
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Deletes the tags from the specified gallery items. This method is intended only for tag-style
 		/// metadata items, such as descriptive tags and people. It is assumed the metadata item in
 		/// the data store is a comma-separated list of tags, and the passed in to this method is to 
@@ -331,7 +353,7 @@ namespace GalleryServerPro.Web.Controller
 
 		/// <summary>
 		/// Rebuilds the <paramref name="metaName" /> for all items in the gallery having ID <paramref name="galleryId" />.
-		/// The action is executed asyncronously and returns immediately.
+		/// The action is executed asynchronously and returns immediately.
 		/// </summary>
 		/// <param name="metaName">Name of the meta item.</param>
 		/// <param name="galleryId">The gallery ID.</param>
@@ -345,16 +367,60 @@ namespace GalleryServerPro.Web.Controller
 		}
 
 		/// <summary>
+		/// Gets a list of tags or people corresponding to the specified parameters.
+		/// Guaranteed to not return null.
+		/// </summary>
+		/// <param name="tagSearchType">Type of the search.</param>
+		/// <param name="searchTerm">The search term. Only tags that begin with this string are returned.
+		/// Specify null or an empty string to return all tags.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify <see cref="TagSearchOptions.TagProperty.Count" />
+		/// to sort by tag frequency or <see cref="TagSearchOptions.TagProperty.Value" /> to sort by tag name. 
+		/// When not specified, defaults to <see cref="TagSearchOptions.TagProperty.NotSpecified" />.</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
+		/// <returns>IEnumerable{Business.Entity.Tag}.</returns>
+		public static IEnumerable<Business.Entity.Tag> GetTags(TagSearchType tagSearchType, string searchTerm, int galleryId, int top = int.MaxValue, TagSearchOptions.TagProperty sortBy = TagSearchOptions.TagProperty.NotSpecified, bool sortAscending = false)
+		{
+			return GetTags(GetTagSearchOptions(tagSearchType, searchTerm, galleryId, top, sortBy, sortAscending));
+		}
+
+		/// <summary>
 		/// Gets a list of tags or people corresponding to the specified <paramref name="searchOptions" />.
 		/// Guaranteed to not return null.
 		/// </summary>
 		/// <param name="searchOptions">The search options.</param>
 		/// <returns>IEnumerable{Tag}.</returns>
-		public static IEnumerable<Entity.Tag> GetTags(TagSearchOptions searchOptions)
+		private static IEnumerable<Business.Entity.Tag> GetTags(TagSearchOptions searchOptions)
 		{
 			var searcher = new TagSearcher(searchOptions);
 
-			return ToTags(searcher.Find());
+			return searcher.Find();
+		}
+
+		/// <summary>
+		/// Gets a JSON string representing the tags used in the specified gallery. The JSON can be used as the
+		/// data source for the jsTree jQuery widget. Only tags the current user has permission to view are
+		/// included. The tag tree has a root node containing a single level of tags.
+		/// </summary>
+		/// <param name="tagSearchType">Type of search.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify <see cref="TagSearchOptions.TagProperty.Count" />
+		/// to sort by tag frequency or <see cref="TagSearchOptions.TagProperty.Value" /> to sort by tag name. 
+		/// When not specified, defaults to <see cref="TagSearchOptions.TagProperty.Count" />.</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
+		/// <param name="expanded">if set to <c>true</c> the tree is configured to display in an expanded form.</param>
+		/// <returns>System.String.</returns>
+		public static string GetTagTreeAsJson(TagSearchType tagSearchType, int galleryId, int top = int.MaxValue, TagSearchOptions.TagProperty sortBy = TagSearchOptions.TagProperty.Count, bool sortAscending = false, bool expanded = false)
+		{
+			var tagSearchOptions = GetTagSearchOptions(tagSearchType, null, galleryId, top, sortBy, sortAscending, expanded);
+
+			return GetTagTree(tagSearchOptions).ToJson();
 		}
 
 		#endregion
@@ -565,11 +631,11 @@ namespace GalleryServerPro.Web.Controller
 				if (galleryItemMeta.MetaItem.MTypeId == (int)MetadataItemName.Title && String.IsNullOrWhiteSpace(galleryItemMeta.MetaItem.Value) && galleryItemMeta.GalleryItems.Any(g => g.IsAlbum))
 				{
 					galleryItemMeta.ActionResult = new ActionResult()
-						                               {
-							                               Status = ActionResultStatus.Error.ToString(),
+																					 {
+																						 Status = ActionResultStatus.Error.ToString(),
 																						 Title = "Cannot save changes",
 																						 Message = "An album title cannot be set to a blank string."
-						                               };
+																					 };
 					return;
 				}
 
@@ -728,17 +794,6 @@ namespace GalleryServerPro.Web.Controller
 		}
 
 		/// <summary>
-		/// Converts the <paramref name="tags" /> to a collection of <see cref="Entity.Tag" /> instances. Returns null if
-		/// <paramref name="tags" /> is null.
-		/// </summary>
-		/// <param name="tags">The tags to convert.</param>
-		/// <returns>IEnumerable{Entity.Tag}.</returns>
-		private static IEnumerable<Entity.Tag> ToTags(IEnumerable<string> tags)
-		{
-			return (tags == null ? null : tags.Select(t => new Entity.Tag { Value = t }));
-		}
-
-		/// <summary>
 		/// Apply a user's rating to the gallery items specified in <paramref name="galleryItemMeta" /> and persist to the
 		/// data store. A record of the user's rating is stored in their profile. If rating is not a number, then no action
 		/// is taken. If rating is less than 0 or greater than 5, it is assigned to 0 or 5 so that the value is guaranteed
@@ -782,7 +837,7 @@ namespace GalleryServerPro.Web.Controller
 					{
 						// We have an existing rating item. Incorporate the user's rating into the average and persist.
 						ratingItem.Value = CalculateAvgRating(galleryObject, ratingItem, galleryItemMeta.MetaItem.Value);
-						
+
 						Factory.SaveGalleryObjectMetadataItem(ratingItem, Utils.UserName);
 
 						PersistRatingInUserProfile(galleryObject.Id, galleryItemMeta.MetaItem.Value);
@@ -842,7 +897,7 @@ namespace GalleryServerPro.Web.Controller
 				currentAvgRating = RemoveUsersPreviousRating(ratingItem.Value, ratingCount, moProfile.Rating);
 
 				// Subtract the user's previous rating from the total rating count while ensuring the # >= 0.
-				ratingCount = Math.Max(ratingCount - 1, 0); 
+				ratingCount = Math.Max(ratingCount - 1, 0);
 			}
 
 			// Increment the rating count and persist.
@@ -852,7 +907,7 @@ namespace GalleryServerPro.Web.Controller
 			Factory.SaveGalleryObjectMetadataItem(ratingCountItem, Utils.UserName);
 
 			// Calculate the new rating.
-			float newAvgRating = ((currentAvgRating*(ratingCount-1)) + userRating)/(ratingCount);
+			float newAvgRating = ((currentAvgRating * (ratingCount - 1)) + userRating) / (ratingCount);
 
 			return newAvgRating.ToString("F4", CultureInfo.InvariantCulture); // Store rating to 4 decimal places
 		}
@@ -941,6 +996,99 @@ namespace GalleryServerPro.Web.Controller
 			}
 
 			ProfileController.SaveProfile(profile);
+		}
+
+		/// <summary>
+		/// Gets a tree representing the tags used in a gallery. The tree has a root node that serves as the tag container.
+		/// It contains a flat list of child nodes for the tags.
+		/// </summary>
+		/// <param name="tagSearchOptions">The options that specify what kind of tags to return and how they should be
+		/// calculated and displayed.</param>
+		/// <returns>Returns an instance of <see cref="Entity.TreeView" />. Guaranteed to not return null.</returns>
+		private static Entity.TreeView GetTagTree(TagSearchOptions tagSearchOptions)
+		{
+			var tags = GetTags(tagSearchOptions);
+			var id = 0;
+			var tv = new Entity.TreeView();
+			var baseUrl = Utils.GetCurrentPageUrl();
+			var qsParm = GetTagTreeNavUrlQsParm(tagSearchOptions.SearchType);
+
+			var rootNode = new Entity.TreeNode
+			{
+				Text = GetTagTreeRootNodeText(tagSearchOptions.SearchType),
+				//ToolTip = "Tags in gallery",
+				Id = String.Concat("tv_tags_", id++),
+				DataId = "root",
+				Expanded = tagSearchOptions.TagTreeIsExpanded,
+			};
+
+			rootNode.AddCssClass("jstree-root-node");
+
+			tv.Nodes.Add(rootNode);
+
+			foreach (var tag in tags)
+			{
+				rootNode.Nodes.Add(new Entity.TreeNode
+				{
+					Text = String.Format(CultureInfo.InvariantCulture, "{0} ({1})", tag.Value, tag.Count),
+					ToolTip = String.Format(CultureInfo.InvariantCulture, Resources.GalleryServerPro.Site_Tag_Tree_Node_Tt, tag.Value),
+					Id = String.Concat("tv_tags_", id++),
+					DataId = tag.Value,
+					NavigateUrl = Utils.AddQueryStringParameter(baseUrl, String.Concat(qsParm, "=", Utils.UrlEncode(tag.Value)))
+				});
+			}
+
+			return tv;
+		}
+
+		private static string GetTagTreeRootNodeText(TagSearchType searchType)
+		{
+			switch (searchType)
+			{
+				case TagSearchType.AllTagsInGallery:
+				case TagSearchType.TagsUserCanView:
+					return Resources.GalleryServerPro.Site_Tag_Tree_Root_Node_Title;
+
+				case TagSearchType.AllPeopleInGallery:
+				case TagSearchType.PeopleUserCanView:
+					return Resources.GalleryServerPro.Site_People_Tree_Root_Node_Title;
+
+				default:
+					throw new ArgumentException(String.Format("This function is not expecting TagSearchType={0}", searchType));
+			}
+		}
+
+		private static string GetTagTreeNavUrlQsParm(TagSearchType searchType)
+		{
+			switch (searchType)
+			{
+				case TagSearchType.AllTagsInGallery:
+				case TagSearchType.TagsUserCanView:
+					return "tag";
+
+				case TagSearchType.AllPeopleInGallery:
+				case TagSearchType.PeopleUserCanView:
+					return "people";
+
+				default:
+					throw new ArgumentException(String.Format("This function is not expecting TagSearchType={0}", searchType));
+			}
+		}
+
+		private static TagSearchOptions GetTagSearchOptions(TagSearchType searchType, string searchTerm, int galleryId, int numTagsToRetrieve = int.MaxValue, TagSearchOptions.TagProperty sortProperty = TagSearchOptions.TagProperty.NotSpecified, bool sortAscending = true, bool expanded = false)
+		{
+			return new TagSearchOptions
+			{
+				GalleryId = galleryId,
+				SearchType = searchType,
+				SearchTerm = searchTerm,
+				IsUserAuthenticated = Utils.IsAuthenticated,
+				Roles = RoleController.GetGalleryServerRolesForUser(),
+				NumTagsToRetrieve = numTagsToRetrieve,
+				SortProperty = sortProperty,
+				SortAscending = sortAscending,
+				TagTreeIsExpanded = expanded
+			};
 		}
 
 		#endregion

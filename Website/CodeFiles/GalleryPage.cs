@@ -779,7 +779,7 @@ namespace GalleryServerPro.Web.Pages
 
 		/// <summary>
 		/// Gets the URL of the previous page the user was viewing. The value is based on the <see cref="PreviousUri" /> property
-		/// and is relative to the application root. If <see cref="PreviousUri" /> is null, such as when the Session object is not
+		/// and is relative to the website root. If <see cref="PreviousUri" /> is null, such as when the Session object is not
 		/// available or it has never been assigned, return String.Empty. Remove the query string parameter "msg" if present. 
 		/// Ex: "/gallery/gs/default.aspx?moid=770"
 		/// </summary>
@@ -1415,19 +1415,31 @@ namespace GalleryServerPro.Web.Pages
 			// First look for title/caption search text in the query string.
 			if (Utils.IsQueryStringParameterPresent("title"))
 			{
-				_album = GalleryObjectController.GetGalleryObjectsHavingTitleOrCaption(Utils.GetQueryStringParameterStrings("title"), GalleryControl.GalleryId);
+				_album = GalleryObjectController.GetGalleryObjectsHavingTitleOrCaption(Utils.GetQueryStringParameterStrings("title"), GetGalleryObjectFilter(), GalleryControl.GalleryId);
 				aid = _album.Id;
 			}
 			// Then look for search text in the query string.
 			else if (Utils.IsQueryStringParameterPresent("search"))
 			{
-				_album = GalleryObjectController.GetGalleryObjectsHavingSearchString(Utils.GetQueryStringParameterStrings("search"), GalleryControl.GalleryId);
+				_album = GalleryObjectController.GetGalleryObjectsHavingSearchString(Utils.GetQueryStringParameterStrings("search"), GetGalleryObjectFilter(), GalleryControl.GalleryId);
 				aid = _album.Id;
 			}
 			// Then look for tags in the query string.
 			else if (Utils.IsQueryStringParameterPresent("tag") || Utils.IsQueryStringParameterPresent("people"))
 			{
-				_album = GalleryObjectController.GetGalleryObjectsHavingTags(Utils.GetQueryStringParameterStrings("tag"), Utils.GetQueryStringParameterStrings("people"), GalleryControl.GalleryId);
+				_album = GalleryObjectController.GetGalleryObjectsHavingTags(Utils.GetQueryStringParameterStrings("tag"), Utils.GetQueryStringParameterStrings("people"), GetGalleryObjectFilter(), GalleryControl.GalleryId);
+				aid = _album.Id;
+			}
+			// Then look for a request for the rated objects in the query string.
+			else if (Utils.IsQueryStringParameterPresent("rating") && AppSetting.Instance.License.LicenseType == LicenseLevel.Enterprise)
+			{
+				_album = GalleryObjectController.GetRatedMediaObjects(Utils.GetQueryStringParameterString("rating"), Utils.GetQueryStringParameterInt32("top"), GalleryControl.GalleryId, GetGalleryObjectFilter(GalleryObjectType.MediaObject));
+				aid = _album.Id;
+			}
+			// Then look for a request for the latest objects in the query string.
+			else if (Utils.IsQueryStringParameterPresent("latest") && AppSetting.Instance.License.LicenseType == LicenseLevel.Enterprise)
+			{
+				_album = GalleryObjectController.GetMostRecentlyAddedGalleryObjects(Utils.GetQueryStringParameterInt32("latest"), GalleryControl.GalleryId, GetGalleryObjectFilter(GalleryObjectType.MediaObject));
 				aid = _album.Id;
 			}
 			else
@@ -1578,48 +1590,45 @@ namespace GalleryServerPro.Web.Pages
 		}
 
 		/// <summary>
-		/// Get the URL to the thumbnail image of the specified gallery object. Either a media object or album may be specified. Example:
-		/// /dev/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1
+		/// Get an absolute URL to the thumbnail image of the specified gallery object. Either a media object or album may be specified. 
+		/// Ex: "http://site.com/gallery/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1"
 		/// The URL can be used to assign to the src attribute of an image tag (&lt;img src='...' /&gt;).
 		/// </summary>
 		/// <param name="galleryObject">The gallery object for which an URL to its thumbnail image is to be generated.
 		/// Either a media object or album may be specified.</param>
 		/// <returns>Returns the URL to the thumbnail image of the specified gallery object.</returns>
-		public string GetThumbnailUrl(IGalleryObject galleryObject)
+		public static string GetThumbnailUrl(IGalleryObject galleryObject)
 		{
-			if (galleryObject is Album)
-				return GetAlbumThumbnailUrl(galleryObject);
-			else
-				return GetMediaObjectUrl(galleryObject, DisplayObjectType.Thumbnail);
+			return GetGalleryObjectUrl(galleryObject, DisplayObjectType.Thumbnail);
 		}
 
 		/// <summary>
-		/// Get the URL to the optimized image of the specified gallery object. Example:
-		/// /dev/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1
+		/// Get an absolute URL to the optimized image of the specified gallery object.
+		/// Ex: "http://site.com/gallery/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1"
 		/// The URL can be used to assign to the src attribute of an image tag (&lt;img src='...' /&gt;).
 		/// </summary>
 		/// <param name="galleryObject">The gallery object for which an URL to its optimized image is to be generated.</param>
 		/// <returns>Returns the URL to the optimized image of the specified gallery object.</returns>
 		public static string GetOptimizedUrl(IGalleryObject galleryObject)
 		{
-			return GetMediaObjectUrl(galleryObject, DisplayObjectType.Optimized);
+			return GetGalleryObjectUrl(galleryObject, DisplayObjectType.Optimized);
 		}
 
 		/// <summary>
-		/// Get the URL to the original image of the specified gallery object. Example:
-		/// /dev/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1
+		/// Get an absolute URL to the original image of the specified gallery object.
+		/// Ex: "http://site.com/gallery/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1"
 		/// The URL can be used to assign to the src attribute of an image tag (&lt;img src='...' /&gt;).
 		/// </summary>
 		/// <param name="galleryObject">The gallery object for which an URL to its original image is to be generated.</param>
 		/// <returns>Returns the URL to the original image of the specified gallery object.</returns>
 		public static string GetOriginalUrl(IGalleryObject galleryObject)
 		{
-			return GetMediaObjectUrl(galleryObject, DisplayObjectType.Original);
+			return GetGalleryObjectUrl(galleryObject, DisplayObjectType.Original);
 		}
 
 		/// <summary>
-		/// Get the URL to the thumbnail, optimized, or original media object. Example:
-		/// /dev/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1
+		/// Get an absolute URL to the thumbnail, optimized, or original media object.
+		/// Ex: "http://site.com/gallery/gs/handler/getmedia.ashx?moid=34&amp;dt=1&amp;g=1"
 		/// The URL can be used to assign to the src attribute of an image tag (&lt;img src='...' /&gt;).
 		/// Not tested: It should be possible to pass an album and request the url to its thumbnail image.
 		/// </summary>
@@ -1629,12 +1638,21 @@ namespace GalleryServerPro.Web.Pages
 		/// An exception is thrown if any other enumeration is passed.</param>
 		/// <returns>Returns the URL to the thumbnail, optimized, or original version of the requested media object.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="galleryObject" /> is null.</exception>
-		public static string GetMediaObjectUrl(IGalleryObject galleryObject, DisplayObjectType displayType)
+		public static string GetGalleryObjectUrl(IGalleryObject galleryObject, DisplayObjectType displayType)
 		{
 			if (galleryObject == null)
+			{
 				throw new ArgumentNullException("galleryObject");
+			}
 
-			return MediaObjectHtmlBuilder.GenerateUrl(galleryObject.GalleryId, galleryObject.Id, displayType);
+			if (galleryObject is Album && (displayType != DisplayObjectType.Thumbnail))
+			{
+				throw new ArgumentException(String.Format("It is invalid to request an URL for an album display type '{0}'.", displayType));
+			}
+
+			var moBuilder = new MediaObjectHtmlBuilder(MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(galleryObject, displayType));
+
+			return moBuilder.GetMediaObjectUrl();
 		}
 
 		/// <summary>
@@ -2082,10 +2100,6 @@ namespace GalleryServerPro.Web.Pages
 			return RoleController.GetRolesCurrentUserCanView(UserCanAdministerSite, UserCanAdministerGallery);
 		}
 
-		/// <overloads>
-		/// Gets the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject" />, including a 
-		/// border, shadows and (possibly) rounded corners.
-		/// </overloads>
 		/// <summary>
 		/// Gets the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject" />, including a 
 		/// border, shadows and (possibly) rounded corners. This function is the same as calling the overloaded version with 
@@ -2093,78 +2107,11 @@ namespace GalleryServerPro.Web.Pages
 		/// </summary>
 		/// <param name="galleryObject">The gallery object to be used as the source for the thumbnail image.</param>
 		/// <returns>Returns HTML that displays a nicely formatted thumbnail image of the specified <paramref name="galleryObject" /></returns>
-		protected string GetThumbnailHtml(IGalleryObject galleryObject)
+		public static string GetThumbnailHtml(IGalleryObject galleryObject)
 		{
-			return GetThumbnailHtml(galleryObject, false);
-		}
+			var moBuilder = new MediaObjectHtmlBuilder(MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(galleryObject, DisplayObjectType.Thumbnail));
 
-		/// <summary>
-		/// Gets the HTML to display a nicely formatted thumbnail image of the specified <paramref name="galleryObject" />, including a 
-		/// border, shadows and (possibly) rounded corners.
-		/// </summary>
-		/// <param name="galleryObject">The gallery object to be used as the source for the thumbnail image.</param>
-		/// <param name="includeHyperlinkToObject">if set to <c>true</c> wrap the image tag with a hyperlink so the user can click through
-		/// to the media object view of the item.</param>
-		/// <returns>Returns HTML that displays a nicely formatted thumbnail image of the specified <paramref name="galleryObject" /></returns>
-		public string GetThumbnailHtml(IGalleryObject galleryObject, bool includeHyperlinkToObject)
-		{
-			return MediaObjectHtmlBuilder.GenerateThumbnailHtml(galleryObject, Request.Browser, includeHyperlinkToObject);
-		}
-
-		/// <summary>
-		/// Gets a data entity containing information about the current gallery. The instance can be JSON-parsed and sent to the 
-		/// browser.
-		/// </summary>
-		/// <returns>Returns <see cref="Entity.Settings" /> object containing information about the current gallery.</returns>
-		private Entity.Settings GetSettingsEntity()
-		{
-			return new Entity.Settings()
-			{
-				GalleryId = GalleryId,
-				ClientId = GspClientId,
-				MediaClientId = MediaClientId,
-				MediaTmplName = MediaTmplName,
-				HeaderClientId = HeaderClientId,
-				HeaderTmplName = HeaderTmplName,
-				ThumbnailClientId = ThumbnailClientId,
-				ThumbnailTmplName = ThumbnailTmplName,
-				LeftPaneClientId = LeftPaneClientId,
-				LeftPaneTmplName = LeftPaneTmplName,
-				RightPaneClientId = RightPaneClientId,
-				RightPaneTmplName = RightPaneTmplName,
-				ShowHeader = ShowHeader,
-				ShowLogin = ShowLogin,
-				ShowSearch = ShowSearch,
-				ShowMediaObjectNavigation = ShowMediaObjectNavigation,
-				ShowMediaObjectIndexPosition = ShowMediaObjectIndexPosition,
-				EnableSelfRegistration = GallerySettings.EnableSelfRegistration,
-				EnableUserAlbum = GallerySettings.EnableUserAlbum,
-				AllowManageOwnAccount = GallerySettings.AllowManageOwnAccount,
-				Title = GalleryTitle,
-				TitleUrl = GetTitleUrl(),
-				TitleUrlTooltip = GetTitleUrlTooltip(),
-				ShowMediaObjectTitle = ShowMediaObjectTitle,
-				PageSize = GallerySettings.PageSize,
-				PagerLocation = GallerySettings.PagerLocation.ToString(),
-				TransitionType = GallerySettings.MediaObjectTransitionType.ToString().ToLowerInvariant(),
-				TransitionDurationMs = Convert.ToInt32(GallerySettings.MediaObjectTransitionDuration * 1000),
-				ShowMediaObjectToolbar = ShowMediaObjectToolbar,
-				AllowDownload = GallerySettings.EnableMediaObjectDownload,
-				AllowZipDownload = GallerySettings.EnableGalleryObjectZipDownload,
-				ShowUrlsButton = ShowUrlsButton,
-				ShowSlideShowButton = ShowSlideShowButton,
-				SlideShowIsRunning = AutoPlaySlideShow && GetAlbum().GetChildGalleryObjects(GalleryObjectType.Image).Any(),
-				SlideShowType = SlideShowType.ToString(),
-				SlideShowIntervalMs = GallerySettings.SlideshowInterval,
-				ShowTransferMediaObjectButton = ShowTransferMediaObjectButton,
-				ShowCopyMediaObjectButton = ShowCopyMediaObjectButton,
-				ShowRotateMediaObjectButton = ShowRotateMediaObjectButton,
-				ShowDeleteMediaObjectButton = ShowDeleteMediaObjectButton,
-				MaxThmbTitleDisplayLength = GallerySettings.MaxThumbnailTitleDisplayLength,
-				AllowAnonymousRating = GallerySettings.AllowAnonymousRating,
-				AllowAnonBrowsing = GallerySettings.AllowAnonymousBrowsing,
-				IsReadOnlyGallery = GallerySettings.MediaObjectPathIsReadOnly
-			};
+			return moBuilder.GetThumbnailHtml();
 		}
 
 		/// <summary>
@@ -2176,8 +2123,8 @@ namespace GalleryServerPro.Web.Pages
 		public Entity.GalleryData GetClientGspData()
 		{
 			var data = GetMediaObjectId() > int.MinValue ?
-				GalleryController.GetGalleryDataForMediaObject(GetMediaObject(), GetAlbum(), new Entity.GalleryDataLoadOptions { LoadMediaItems = true }) :
-				GalleryController.GetGalleryDataForAlbum(GetAlbum(), new Entity.GalleryDataLoadOptions { LoadGalleryItems = true });
+				GalleryController.GetGalleryDataForMediaObject(GetMediaObject(), GetAlbum(), new Entity.GalleryDataLoadOptions { LoadMediaItems = true, Filter = GetGalleryObjectFilter() }) :
+				GalleryController.GetGalleryDataForAlbum(GetAlbum(), new Entity.GalleryDataLoadOptions { LoadGalleryItems = true, Filter = GetGalleryObjectFilter() });
 
 			data.Settings = GetSettingsEntity();
 
@@ -2412,7 +2359,13 @@ namespace GalleryServerPro.Web.Pages
 			catch (GallerySecurityException)
 			{
 				// Redirect to the logon page if the user has to log in.
-				if (RequiresLogin())
+				if ((this.PageId == PageId.login) || (this.PageId == PageId.createaccount) || (this.PageId == PageId.recoverpassword))
+				{
+					// User is on one of the authentication pages, so just create an empty album. We'll get here when anon.
+					// browsing is disabled and a specific album is specified on the GCS page.
+					this._album = CreateEmptyAlbum(AlbumController.LoadAlbumInstance(this.GalleryControl.AlbumId, false).GalleryId);
+				}
+				else if (RequiresLogin())
 				{
 					Utils.Redirect(PageId.login, true, "ReturnUrl={0}", Utils.UrlEncode(Utils.GetCurrentPageUrl(true)));
 				}
@@ -2607,38 +2560,6 @@ namespace GalleryServerPro.Web.Pages
 			}
 		}
 
-		private static string GetAlbumThumbnailUrl(IGalleryObject galleryObject)
-		{
-			// Get a reference to the path to the thumbnail. If the user is anonymous and the thumbnail is from a private
-			// media object or album, then specify int.MinValue for the media object ID. This will be interpreted
-			// by the image handler to generate a default, empty thumbnail image.
-			int mediaObjectId = galleryObject.Thumbnail.MediaObjectId;
-
-			if (mediaObjectId == 0)
-			{
-				mediaObjectId = int.MinValue;
-			}
-
-			if (!Utils.IsAuthenticated && (galleryObject.Thumbnail.MediaObjectId > 0))
-			{
-				try
-				{
-					IGalleryObject mediaObject = Factory.LoadMediaObjectInstance(galleryObject.Thumbnail.MediaObjectId);
-					if (mediaObject.Parent.IsPrivate || mediaObject.IsPrivate)
-					{
-						mediaObjectId = int.MinValue;
-					}
-				}
-				catch (InvalidMediaObjectException)
-				{
-					// We'll get here if the ID for the thumbnail doesn't represent an existing media object.
-					mediaObjectId = int.MinValue;
-				}
-			}
-
-			return MediaObjectHtmlBuilder.GenerateUrl(galleryObject.GalleryId, mediaObjectId, DisplayObjectType.Thumbnail);
-		}
-
 		private void RegisterHiddenFields()
 		{
 			if (GetMediaObjectId() > int.MinValue)
@@ -2743,6 +2664,8 @@ namespace GalleryServerPro.Web.Pages
 				AddCssFiles(head);
 
 				AddScriptFiles(head);
+
+				AddRssLink(head);
 
 				AddGlobalStartupScript();
 
@@ -2851,6 +2774,31 @@ namespace GalleryServerPro.Web.Pages
 		}
 
 		/// <summary>
+		/// Add a link to the RSS feed for the current album to the <paramref name="head" />. This function
+		/// has no effect unless gallery is running an Enterprise license.
+		/// </summary>
+		/// <param name="head">The head.</param>
+		/// <exception cref="System.ArgumentNullException">Thrown when <paramref name="head" /> is null.</exception>
+		private void AddRssLink(HtmlHead head)
+		{
+			if (head == null)
+				throw new ArgumentNullException();
+
+			var rssUrl = AlbumController.GetRssUrl(GetAlbum());
+
+			if (rssUrl != null)
+			{
+				var links = String.Format(CultureInfo.InvariantCulture, @"
+	<link rel='alternate' type='application/rss+xml' title='{0}' href='{1}' />
+	",
+	 GetAlbum().Title,
+	 rssUrl);
+
+				head.Controls.Add(new LiteralControl(links));
+			}
+		}
+
+		/// <summary>
 		/// Renders javascript that should run when the page loads in the browser.
 		/// </summary>
 		private void AddStartupScript()
@@ -2925,7 +2873,7 @@ namespace GalleryServerPro.Web.Pages
 			{
 				SelectedAlbumIds = (GetAlbumId() > int.MinValue ? new IntegerCollection(new int[] { GetAlbumId() }) : new IntegerCollection()),
 				NavigateUrl = GalleryControl.TreeViewNavigateUrl ?? Utils.GetCurrentPageUrl(),
-				ShowCheckbox = false,
+				EnableCheckboxPlugin = false,
 				RequiredSecurityPermissions = SecurityActions.ViewAlbumOrMediaObject,
 				RootAlbumPrefix = String.Empty,
 				Galleries = new GalleryCollection() { Factory.LoadGallery(GalleryId) }
@@ -3178,7 +3126,8 @@ namespace GalleryServerPro.Web.Pages
 																																GalleryId = GalleryId,
 																																SearchType = GalleryObjectSearchType.HighestAlbumUserCanView,
 																																Roles = RoleController.GetGalleryServerRolesForUser(),
-																																IsUserAuthenticated = Utils.IsAuthenticated
+																																IsUserAuthenticated = Utils.IsAuthenticated,
+																																Filter = GalleryObjectType.Album
 																															});
 
 			var album = galleryObjectSearcher.FindOne();
@@ -3431,7 +3380,6 @@ namespace GalleryServerPro.Web.Pages
 
 				case MessageType.CannotAssignThumbnailNoObjectsExistInAlbum:
 				case MessageType.CannotEditCaptionsNoEditableObjectsExistInAlbum:
-				case MessageType.CannotRearrangeNoObjectsExistInAlbum:
 				case MessageType.CannotRotateNoRotatableObjectsExistInAlbum:
 				case MessageType.CannotMoveNoObjectsExistInAlbum:
 				case MessageType.CannotCopyNoObjectsExistInAlbum:
@@ -3494,6 +3442,79 @@ namespace GalleryServerPro.Web.Pages
 
 				Page.ClientScript.RegisterStartupScript(GetType(), String.Concat(ClientID, "_msgScript"), script, true);
 			}
+		}
+
+		/// <summary>
+		/// Gets a data entity containing information about the current gallery. The instance can be JSON-parsed and sent to the 
+		/// browser.
+		/// </summary>
+		/// <returns>Returns <see cref="Entity.Settings" /> object containing information about the current gallery.</returns>
+		private Entity.Settings GetSettingsEntity()
+		{
+			return new Entity.Settings()
+			{
+				GalleryId = GalleryId,
+				ClientId = GspClientId,
+				MediaClientId = MediaClientId,
+				MediaTmplName = MediaTmplName,
+				HeaderClientId = HeaderClientId,
+				HeaderTmplName = HeaderTmplName,
+				ThumbnailClientId = ThumbnailClientId,
+				ThumbnailTmplName = ThumbnailTmplName,
+				LeftPaneClientId = LeftPaneClientId,
+				LeftPaneTmplName = LeftPaneTmplName,
+				RightPaneClientId = RightPaneClientId,
+				RightPaneTmplName = RightPaneTmplName,
+				ShowHeader = ShowHeader,
+				ShowLogin = ShowLogin,
+				ShowSearch = ShowSearch,
+				ShowMediaObjectNavigation = ShowMediaObjectNavigation,
+				ShowMediaObjectIndexPosition = ShowMediaObjectIndexPosition,
+				EnableSelfRegistration = GallerySettings.EnableSelfRegistration,
+				EnableUserAlbum = GallerySettings.EnableUserAlbum,
+				AllowManageOwnAccount = GallerySettings.AllowManageOwnAccount,
+				Title = GalleryTitle,
+				TitleUrl = GetTitleUrl(),
+				TitleUrlTooltip = GetTitleUrlTooltip(),
+				ShowMediaObjectTitle = ShowMediaObjectTitle,
+				PageSize = GallerySettings.PageSize,
+				PagerLocation = GallerySettings.PagerLocation.ToString(),
+				TransitionType = GallerySettings.MediaObjectTransitionType.ToString().ToLowerInvariant(),
+				TransitionDurationMs = Convert.ToInt32(GallerySettings.MediaObjectTransitionDuration * 1000),
+				ShowMediaObjectToolbar = ShowMediaObjectToolbar,
+				AllowDownload = GallerySettings.EnableMediaObjectDownload,
+				AllowZipDownload = GallerySettings.EnableGalleryObjectZipDownload,
+				ShowUrlsButton = ShowUrlsButton,
+				ShowSlideShowButton = ShowSlideShowButton,
+				SlideShowIsRunning = AutoPlaySlideShow && GetAlbum().GetChildGalleryObjects(GalleryObjectType.Image).Any(),
+				SlideShowType = SlideShowType.ToString(),
+				SlideShowIntervalMs = GallerySettings.SlideshowInterval,
+				ShowTransferMediaObjectButton = ShowTransferMediaObjectButton,
+				ShowCopyMediaObjectButton = ShowCopyMediaObjectButton,
+				ShowRotateMediaObjectButton = ShowRotateMediaObjectButton,
+				ShowDeleteMediaObjectButton = ShowDeleteMediaObjectButton,
+				MaxThmbTitleDisplayLength = GallerySettings.MaxThumbnailTitleDisplayLength,
+				AllowAnonymousRating = GallerySettings.AllowAnonymousRating,
+				AllowAnonBrowsing = GallerySettings.AllowAnonymousBrowsing,
+				IsReadOnlyGallery = GallerySettings.MediaObjectPathIsReadOnly
+			};
+		}
+
+		/// <summary>
+		/// Gets the gallery object filter specified in the filter query string parameter. If not present or is not a valid
+		/// value, returns <paramref name="defaultFilter" />. If <paramref name="defaultFilter" /> is not specified, 
+		/// it defaults to <see cref="GalleryObjectType.All" />.
+		/// </summary>
+		/// <param name="defaultFilter">The default filter. Defaults to <see cref="GalleryObjectType.All" /> when not specified.</param>
+		/// <returns>An instance of <see cref="GalleryObjectType" />.</returns>
+		private static GalleryObjectType GetGalleryObjectFilter(GalleryObjectType defaultFilter = GalleryObjectType.All)
+		{
+			if (Utils.IsQueryStringParameterPresent("filter"))
+			{
+				return GalleryObjectTypeEnumHelper.Parse(Utils.GetQueryStringParameterString("filter"), defaultFilter);
+			}
+
+			return defaultFilter;
 		}
 
 		#endregion

@@ -495,7 +495,7 @@ namespace GalleryServerPro.Business
 
 			DeleteOrphanedMediaObjectRecords(album);
 
-			DeleteOrphanedThumbnailAndOptimizedImages(album);
+			DeleteOrphanedThumbnailAndOptimizedFiles(album);
 		}
 
 		private void UpdateStatus(int currentFileIndex, string filepath = null, string filename = null, SynchronizationState syncState = SynchronizationState.NotSet, bool persistToDatabase = false)
@@ -538,16 +538,21 @@ namespace GalleryServerPro.Business
 				mediaObject.RegenerateThumbnailOnSave = true;
 			}
 
-			Image image = mediaObject as Image;
-			if (image != null)
+			switch (mediaObject.GalleryObjectType)
 			{
-				EvaluateOriginalImage(image);
+				case GalleryObjectType.Image:
+					EvaluateOriginalImage((Image)mediaObject);
+					EvaluateOptimizedImage((Image)mediaObject);
+					break;
 
-				EvaluateOptimizedImage(image);
-			}
-			else
-			{
-				UpdateNonImageWidthAndHeight(mediaObject);
+				case GalleryObjectType.Video:
+				case GalleryObjectType.Audio:
+					EvaluateOptimizedVideoAudio(mediaObject);
+					break;
+
+				default:
+					UpdateNonImageWidthAndHeight(mediaObject);
+					break;
 			}
 
 			UpdateMetadataFilename(mediaObject);
@@ -665,16 +670,16 @@ namespace GalleryServerPro.Business
 		}
 
 		/// <summary>
-		/// Delete any thumbnail and optimized images that do not have matching media objects.
+		/// Delete any thumbnail and optimized files that do not have matching media objects.
 		/// This can occur when a user manually transfers (e.g. uses Windows Explorer)
-		/// original images to a new directory and leaves the thumbnail and optimized
-		/// images in the original directory or when a user deletes the original media file in 
+		/// original files to a new directory and leaves the thumbnail and optimized
+		/// files in the original directory or when a user deletes the original media file in 
 		/// Explorer. This function *only* deletes files that begin the the thumbnail and optimized
 		/// prefix (e.g. zThumb_, zOpt_).
 		/// </summary>
 		/// <param name="album">The album whose directory is to be processed for orphaned image files.</param>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="album" /> is null.</exception>
-		private void DeleteOrphanedThumbnailAndOptimizedImages(IAlbum album)
+		private void DeleteOrphanedThumbnailAndOptimizedFiles(IAlbum album)
 		{
 			if (album == null)
 				throw new ArgumentNullException("album");
@@ -867,6 +872,31 @@ namespace GalleryServerPro.Business
 		}
 
 		/// <summary>
+		/// Evaluates the optimized file for video and audio objects. If the optimized file doesn't exist or is no 
+		/// longer wanted, update the optimized properties to match those of the original. This helps when the
+		/// encoder is configured to ignore this particular file type.
+		/// </summary>
+		/// <param name="mediaObject">The media object.</param>
+		private void EvaluateOptimizedVideoAudio(IGalleryObject mediaObject)
+		{
+			if (mediaObject == null)
+				return;
+
+			var optFileMissing = !File.Exists(mediaObject.Optimized.FileNamePhysicalPath);
+			var optFileIsDifferentThanOriginal = !mediaObject.Optimized.FileName.Equals(mediaObject.Original.FileName, StringComparison.OrdinalIgnoreCase);
+			var optFileNotWanted = (RebuildOptimized && optFileIsDifferentThanOriginal && !MediaConversionQueue.Instance.HasEncoderSetting(mediaObject));
+
+			if (optFileMissing || optFileNotWanted)
+			{
+				// If the file exists, it will later be deleted in DeleteOrphanedThumbnailAndOptimizedFiles.
+				mediaObject.Optimized.FileName = mediaObject.Original.FileName;
+				mediaObject.Optimized.Width = mediaObject.Original.Width;
+				mediaObject.Optimized.Height = mediaObject.Original.Height;
+				mediaObject.Optimized.FileSizeKB = mediaObject.Original.FileSizeKB;
+			}
+		}
+
+		/// <summary>
 		/// Check that the optimized image exists. <paramref name="mediaObject"/> *must* be an <see cref="Image"/> type.
 		/// If "overwrite compressed" option is selected, also check whether it the optimized version is really needed.
 		/// </summary>
@@ -904,7 +934,7 @@ namespace GalleryServerPro.Business
 			{
 				// We have an image where the optimized image exists. But perhaps the user changed some optimized trigger settings
 				// and we no longer need the optimized image. Check for this possibility, and if true, update the optimized properties
-				// to be the same as the original. Note: We only check if user selected the "overwrite compresssed" option - this is 
+				// to be the same as the original. Note: We only check if user selected the "overwrite compressed" option - this is 
 				// because checking the dimensions of an image is very resource intensive, so we'll only do this if necessary.
 				if (RebuildOptimized && !DoesOriginalExceedOptimizedTriggers(mediaObject))
 				{

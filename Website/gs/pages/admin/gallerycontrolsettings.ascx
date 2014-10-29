@@ -227,9 +227,16 @@
 
           $("#gsp_iptDefAlbum").prop('disabled', false);
 
-          var tv = $("#<%= tvUC.TreeViewClientId %>");
-          tv.bind("select_node.jstree", function (e, data) {
-            onDefAlbumTvNodeSelect(e, data);
+          $("#<%= tvUC.TreeViewClientId %>").on("changed.jstree", function (e, data) {
+            switch (data.action) {
+              case 'select_node':
+                $("#gsp_iptDefAlbum").val(data.node.text);
+                $("#gsp_defAlbumDropDown").slideUp();
+                break;
+              case 'deselect_node':
+                $("#gsp_defAlbumDropDown").slideUp();
+                break;
+            }
           });
         }
 
@@ -244,11 +251,6 @@
         });
 
         $('#<%= txtDefaultMediaObjectId.ClientID %>').prop('disabled', (!rbDefaultMediaObject.prop('checked') || rbDefaultMediaObject.prop('disabled')));
-
-        var onDefAlbumTvNodeSelect = function (e, data) {
-          $("#gsp_iptDefAlbum").val(data.inst.get_text(data.inst.get_selected()));
-          $("#gsp_defAlbumDropDown").slideUp();
-        };
       };
 
       var configOverridableControls = function () {

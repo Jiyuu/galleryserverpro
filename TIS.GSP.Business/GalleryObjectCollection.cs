@@ -124,6 +124,12 @@ namespace GalleryServerPro.Business
 		/// <returns>An instance of IList{IGalleryObject}.</returns>
 		public IList<IGalleryObject> ToSortedList(MetadataItemName sortByMetaName, bool sortAscending, int galleryId)
 		{
+			if (sortByMetaName == MetadataItemName.NotSpecified)
+			{
+				// This is a custom sort, so sort based on the Sequence property.
+				return ToSortedList();
+			}
+
 			var gallerySetting = Factory.LoadGallerySetting(galleryId);
 
 			if (gallerySetting.MetadataDisplaySettings.Find(sortByMetaName).DataType == typeof(DateTime))

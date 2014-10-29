@@ -35,19 +35,19 @@
   </p>
 	<asp:Repeater ID="rptr" runat="server">
 		<HeaderTemplate>
-			<div class="gsp_floatcontainer">
+			<ul class="gsp_floatcontainer">
 		</HeaderTemplate>
 		<ItemTemplate>
-			<div class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
-				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem, false) %>
+			<li class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
+				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem) %>
 				<p id="p" runat="server">
 					<asp:CheckBox ID="chk" runat="server" Text='<%# GetGalleryObjectText(Eval("Title").ToString(), Container.DataItem.GetType()) %>' CssClass="gsp_go_t" Width="<%# GetTitleWidth((IGalleryObject) Container.DataItem) %>" />
 				</p>
 				<asp:HiddenField ID="hdn" runat="server" Value="<%# GetId((IGalleryObject) Container.DataItem) %>" />
-			</div>
+			</li>
 		</ItemTemplate>
 		<FooterTemplate>
-			</div>
+			</ul>
 		</FooterTemplate>
 	</asp:Repeater>
 	<asp:PlaceHolder ID="phTaskFooter" runat="server" />

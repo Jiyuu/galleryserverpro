@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Tech Info Systems, LLC")]
 [assembly: AssemblyProduct("Gallery Server Pro")]
-[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2013")]
+[assembly: AssemblyCopyright("Copyright © Tech Info Systems, LLC 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,5 +28,5 @@ using System.Runtime.InteropServices;
 
 [assembly: System.Web.UI.WebResource("GalleryServerPro.Web.App_GlobalResources.gsp-ftr-logo-170x46.png", "image/png")]
 
-[assembly: AssemblyVersion("3.1.0.*")]
+[assembly: AssemblyVersion("3.2.1.*")]
 [assembly: System.Resources.SatelliteContractVersion("1.0.0.0")]

@@ -2,9 +2,9 @@
 <%@ Import Namespace="GalleryServerPro.Web" %>
 <div class="gsp_indentedContent">
   <p class="gsp_a_ap_to">
-		<asp:Label ID="lbl1" runat="server" CssClass="gsp_bold" Text="<%$ Resources:GalleryServerPro, Admin_Settings_Apply_To_Label %>"
-			EnableViewState="false" />&nbsp;<asp:Literal runat="server" Text="<%$ Resources:GalleryServerPro, Admin_All_Galleries_Label %>" />
-	</p>
+    <asp:Label ID="lbl1" runat="server" CssClass="gsp_bold" Text="<%$ Resources:GalleryServerPro, Admin_Settings_Apply_To_Label %>"
+      EnableViewState="false" />&nbsp;<asp:Literal runat="server" Text="<%$ Resources:GalleryServerPro, Admin_All_Galleries_Label %>" />
+  </p>
   <asp:PlaceHolder ID="phAdminHeader" runat="server" />
   <div class="gsp_addleftpadding5">
     <div id="gsp_optionsHdr" class="gsp_optionsHdr gsp_collapsed ui-corner-top">
@@ -47,35 +47,35 @@
 </div>
 <asp:PlaceHolder runat="server">
   <script id="<%= cid %>_roleTmpl" type="text/x-jsrender">
-	  <h3 data-rolename="{{:Name}}"{{if IsOwner}}class="gsp_roleOwner"{{/if}}>
-		  <a href="#" {{if Members}}{{if Members.length == 0}} title="Members: None"{{else}} title="Members:{{for Members ~count=Members.length}} {{:#data}}{{if #index === ~count-2}} and{{else #index < ~count-2}}, {{/if}}{{/for}}"{{/if}}{{/if}}><input type="checkbox" class="gsp_chkRole" />{{>Name}}</a>&nbsp;<input type="button" value="Save" class="gsp_roleSaveBtn" title="Save this role" />&nbsp;<input type="button" value="Delete" class="gsp_roleDeleteBtn" title="Delete this role" />&nbsp;<span class="gsp_waitCtr"></span></h3>
-	  <div>
-	  </div>
+    <h3 data-rolename="{{: ~htmlEscape(Name)}}"{{if IsOwner}}class="gsp_roleOwner"{{/if}}>
+      <a href="#" {{if Members}}{{if Members.length == 0}} title="Members: None"{{else}} title="Members:{{for Members ~count=Members.length}} {{:#data}}{{if #index === ~count-2}} and{{else #index < ~count-2}}, {{/if}}{{/for}}"{{/if}}{{/if}}><input type="checkbox" class="gsp_chkRole" />{{>Name}}</a>&nbsp;<input type="button" value="Save" class="gsp_roleSaveBtn" title="Save this role" />&nbsp;<input type="button" value="Delete" class="gsp_roleDeleteBtn" title="Delete this role" />&nbsp;<span class="gsp_waitCtr"></span></h3>
+    <div>
+    </div>
   </script>
   <script id="<%= cid %>_roleBodyTmpl" type="text/x-jsrender">
-	  <div id="gsp_roleTabContainer" class="gsp_tabContainer">
-		  <p id="gsp_newRoleName" class='gsp_invisible'>Role name: <input id='gsp_roleName' type='text' placeholder='Type role name' style='width: 400px;' /></p>
-		  <ul>
-			  <li><a href="#gsp_roleTabPermission">Permissions</a></li>
-			  <li><a href="#gsp_roleTabAlbums">Albums</a></li>
-			  <li><a href="#gsp_roleTabUsers">Users</a></li>
-		  </ul>
-		  <div id="gsp_roleTabPermission">
-			  <div id="gsp_RolePerms"></div>
-			  <input id="hdnSelectedRolePerms" type="hidden" />
-		  </div>
-		  <div id="gsp_roleTabAlbums">
-			  <div id="gsp_RoleAlbums"></div>
-			  <input id="hdnSelectedRoleAlbums" type="hidden" />
-		  </div>
-		  <div id="gsp_roleTabUsers">
+    <div id="gsp_roleTabContainer" class="gsp_tabContainer">
+      <p id="gsp_newRoleName" class='gsp_invisible'>Role name: <input id='gsp_roleName' type='text' placeholder='Type role name' style='width: 400px;' /></p>
+      <ul>
+        <li><a href="#gsp_roleTabPermission">Permissions</a></li>
+        <li><a href="#gsp_roleTabAlbums">Albums</a></li>
+        <li><a href="#gsp_roleTabUsers">Users</a></li>
+      </ul>
+      <div id="gsp_roleTabPermission">
+        <div id="gsp_RolePerms"></div>
+        <input id="hdnSelectedRolePerms" type="hidden" />
+      </div>
+      <div id="gsp_roleTabAlbums">
+        <div id="gsp_RoleAlbums"></div>
+        <input id="hdnSelectedRoleAlbums" type="hidden" />
+      </div>
+      <div id="gsp_roleTabUsers">
         <p>This role contains the following users:</p>
         {{for Members}}
-			  <p>{{:#data}}</p>
+        <p>{{:#data}}</p>
         {{/for}}
-		  </div>
-	  </div>
-	  <div></div>
+      </div>
+    </div>
+    <div></div>
   </script>
   <script>
     (function ($) {
@@ -218,7 +218,7 @@
           roleCtr.find("input.gsp_chkRole:checkbox").click(function (e) { e.stopPropagation(); });
         };
 
-        var bindRoleData = function (roleName, roleHeader, roleContent) {
+      	var bindRoleData = function (roleName, roleHeader, roleContent) {
           $.ajax(({
             type: "GET",
             url: window.Gsp.AppRoot + '/api/roles/getbyrolename?roleName=' + encodeURIComponent(roleName),
@@ -246,20 +246,22 @@
               allowMultiSelect: true,
               albumIdsToSelect: $.map(gspRoleData.Permissions, function (permValue, permName) { if (permValue) return permName; else return null; }),
               checkedAlbumIdsHiddenFieldClientId: 'hdnSelectedRolePerms',
-              navigateUrl: ''
+              navigateUrl: '',
+              enableCheckboxPlugin: true
             };
-
-            $('#gsp_RolePerms').gspTreeView(gspRolePermData, options);
-         
-            window.setTimeout(bindRolePermissionTooltips, 100);
+            
+            $('#gsp_RolePerms').jstree('destroy')
+              .gspTreeView(Gsp.deepCopy(gspRolePermData), options)
+              .on('ready.jstree', bindRolePermissionTooltips)
+              .on('after_open.jstree', bindRolePermissionTooltips); // Required because jstree deletes the HTML when collapsing
           };
 
           var bindRoleAlbums = function () {
             var options = {
               allowMultiSelect: true,
-              albumIdsToSelect: gspRoleData.SelectedRootAlbumIds,
               checkedAlbumIdsHiddenFieldClientId: 'hdnSelectedRoleAlbums',
-              navigateUrl: ''
+              navigateUrl: '',
+              enableCheckboxPlugin: true
             };
           
             $('#gsp_RoleAlbums').gspTreeView($.parseJSON(gspRoleData.AlbumTreeDataJson), options);
@@ -287,9 +289,8 @@
               var tv = $('#gsp_RolePerms');
               var lis = $('li', tv);
               $.each(lis, function () {
-                gspRoleData.Permissions[$(this).data('id')] = tv.jstree("is_checked", $(this));
+                gspRoleData.Permissions[$(this).data('id')] = tv.jstree("is_selected", $(this));
               });
-
               var idStr = $('#hdnSelectedRoleAlbums').val();
               gspRoleData.SelectedRootAlbumIds = idStr.length > 0 ? idStr.split(",") : [];
             };
@@ -412,7 +413,7 @@
       };
 
       var bindRolePermissionTooltips = function () {
-        var permSelector = 'li[data-id={0}] a:first';
+        var permSelector = 'li[data-id="{0}"] a:first';
         var $permContainer = $('#gsp_RolePerms');
         
         $(permSelector.format('AdministerSite'), $permContainer).gspTooltip({

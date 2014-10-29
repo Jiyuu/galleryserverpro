@@ -467,7 +467,7 @@ namespace GalleryServerPro.Web.Controller
 				mediaItem = data.Album.MediaItems.FirstOrDefault(mo => mo.Id == mediaObject.Id);
 
 			if (mediaItem == null)
-				mediaItem = GalleryObjectController.ToMediaItem(mediaObject, 0, Utils.GetBrowserIdsForCurrentRequest());
+				mediaItem = GalleryObjectController.ToMediaItem(mediaObject, 0, MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(mediaObject));
 
 			mediaItem.MetaItems = GalleryObjectController.ToMetaItems(mediaObject.MetadataItems.GetVisibleItems(), mediaObject);
 
@@ -676,6 +676,8 @@ namespace GalleryServerPro.Web.Controller
 				SkinPath = Utils.SkinPath,
 				CurrentPageUrl = Utils.GetCurrentPageUrl(),
 				AppUrl = Utils.GetAppUrl(),
+				LatestUrl = Utils.GetLatestUrl(),
+				TopRatedUrl = Utils.GetTopRatedUrl(),
 				HostUrl = Utils.GetHostUrl(),
 				IsInReducedFunctionalityMode = AppSetting.Instance.License.IsInReducedFunctionalityMode
 			};
@@ -928,6 +930,12 @@ namespace GalleryServerPro.Web.Controller
 					{
 						throw new Exception(String.Format(CultureInfo.InvariantCulture, "Cannot change password. The password specified in {0} does not match the existing password for user {1}, so an attempt was made to change it. However, the membership provider wouldn't allow it and did not specify a reason. Things you can try: (1) Specify a different username in the text file. (2) Enter a different password for the user in the text file, taking care to meet length and complexity requirements.", Utils.InstallFilePath, user.UserName));
 					}
+				}
+
+				RoleController.ValidateSysAdminRole();
+				if (!RoleController.IsUserInRole(user.UserName, Resources.GalleryServerPro.Site_Sys_Admin_Role_Name))
+				{
+					RoleController.AddUserToRole(user.UserName, Resources.GalleryServerPro.Site_Sys_Admin_Role_Name);
 				}
 			}
 			else

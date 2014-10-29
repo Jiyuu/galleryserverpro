@@ -599,20 +599,45 @@ namespace GalleryServerPro.Business
 					mediaObject.Optimized.Height = settings.TargetHeight;
 				}
 
-				int fileSize = (int)(mediaObject.Optimized.FileInfo.Length / 1024);
-				mediaObject.Optimized.FileSizeKB = (fileSize < 1 ? 1 : fileSize); // Very small files should be 1, not 0.
-
 				// Step 2: If we already had an optimized file and we just created a second one, delete the first one
 				// and rename the new one to match the first one.
-				var optFileDifferentThanOriginal = !String.Equals(mediaObject.Optimized.FileName, mediaObject.Original.FileName, StringComparison.OrdinalIgnoreCase);
-				var optFileDifferentThanCreatedFile = !String.Equals(mediaObject.Optimized.FileName, Path.GetFileName(settings.FilePathDestination), StringComparison.OrdinalIgnoreCase);
+				var optFileDifferentThanOriginal = !String.Equals(mediaObject.Optimized.FileName, mediaObject.Original.FileName, StringComparison.InvariantCultureIgnoreCase);
+				var optFileDifferentThanCreatedFile = !String.Equals(mediaObject.Optimized.FileName, Path.GetFileName(settings.FilePathDestination), StringComparison.InvariantCultureIgnoreCase);
 
 				if (optFileDifferentThanOriginal && optFileDifferentThanCreatedFile && File.Exists(mediaObject.Optimized.FileNamePhysicalPath))
 				{
 					var curFilePath = mediaObject.Optimized.FileNamePhysicalPath;
 					File.Delete(curFilePath);
-					File.Move(settings.FilePathDestination, curFilePath);
-					settings.FilePathDestination = curFilePath;
+
+					var optFileExtDifferentThanCreatedFileExt = !Path.GetExtension(curFilePath).Equals(Path.GetExtension(settings.FilePathDestination), StringComparison.InvariantCultureIgnoreCase);
+					if (optFileExtDifferentThanCreatedFileExt)
+					{
+						// Extension of created file is different than current optimized file. This can happen, for example, when syncing after
+						// changing encoder settings to produce MP4's instead of FLV's. Use the filename of the current optimized file and combine
+						// it with the extension of the created file.
+						var newOptFileName = String.Concat(Path.GetFileNameWithoutExtension(curFilePath), Path.GetExtension(settings.FilePathDestination));
+						var newOptFilePath = String.Concat(Path.GetDirectoryName(curFilePath), Path.DirectorySeparatorChar, newOptFileName);
+
+						if (!settings.FilePathDestination.Equals(newOptFilePath, StringComparison.InvariantCultureIgnoreCase))
+						{
+							// Calculated file name differs from the one that was generated, so rename it, deleting any existing file first.
+							if (File.Exists(newOptFilePath))
+							{
+								File.Delete(newOptFilePath);
+							}
+
+							File.Move(settings.FilePathDestination, newOptFilePath);
+							settings.FilePathDestination = newOptFilePath;
+						}
+
+						mediaObject.Optimized.FileName = newOptFileName;
+						mediaObject.Optimized.FileNamePhysicalPath = newOptFilePath;
+					}
+					else
+					{
+						File.Move(settings.FilePathDestination, curFilePath);
+						settings.FilePathDestination = curFilePath;
+					}
 				}
 				else
 				{
@@ -620,6 +645,10 @@ namespace GalleryServerPro.Business
 					mediaObject.Optimized.FileName = Path.GetFileName(settings.FilePathDestination);
 					mediaObject.Optimized.FileNamePhysicalPath = settings.FilePathDestination;
 				}
+
+				// Now that we have the optimized file name all set, grab it's size.
+				int fileSize = (int)(mediaObject.Optimized.FileInfo.Length / 1024);
+				mediaObject.Optimized.FileSizeKB = (fileSize < 1 ? 1 : fileSize); // Very small files should be 1, not 0.
 			}
 
 			// Step 3: Save and finish up.
@@ -784,7 +813,7 @@ namespace GalleryServerPro.Business
 		/// <returns>Returns an instance of <see cref="MediaQueueItem" />, or null.</returns>
 		private MediaQueueItem GetNextItemInQueue()
 		{
-			return MediaQueueItemDictionary.FirstOrDefault(m => m.Value.Status == MediaQueueItemStatus.Waiting).Value;
+			return MediaQueueItemDictionary.OrderBy(q => q.Value.DateAdded).FirstOrDefault(m => m.Value.Status == MediaQueueItemStatus.Waiting).Value;
 		}
 
 		/// <summary>
@@ -822,11 +851,11 @@ namespace GalleryServerPro.Business
 				galleryId = settings.GalleryId;
 
 				data = new Dictionary<string, string>
-				       {
-					       {"FFmpeg args", settings.FFmpegArgs},
-					       {"FFmpeg output", settings.FFmpegOutput},
-					       {"StackTrace", Environment.StackTrace}
-				       };
+							 {
+								 {"FFmpeg args", settings.FFmpegArgs},
+								 {"FFmpeg output", settings.FFmpegOutput},
+								 {"StackTrace", Environment.StackTrace}
+							 };
 			}
 
 			Events.EventController.RecordEvent(msg, EventType.Info, galleryId, Factory.LoadGallerySettings(), AppSetting.Instance, data);

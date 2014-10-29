@@ -126,7 +126,7 @@ namespace GalleryServerPro.Data
 
 		public virtual void Edit(T entity)
 		{
-			_ctx.Entry(entity).State = System.Data.EntityState.Modified;
+			_ctx.Entry(entity).State = EntityState.Modified;
 		}
 
 		public virtual void Upsert(T entity, Func<T, bool> insertExpression)

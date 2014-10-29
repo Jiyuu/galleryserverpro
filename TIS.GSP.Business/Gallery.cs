@@ -227,8 +227,8 @@ namespace GalleryServerPro.Business
 
 		/// <summary>
 		/// Configure the gallery by verifying that a default set of
-		/// records exist in the relevant tables (gsp_Album, gsp_GallerySetting, gsp_MimeTypeGallery, gsp_Role_Album, gsp_UiTemplate,
-		/// gsp_UiTemplateAlbum). No changes are made to the file system as part of this operation. This method does not overwrite 
+		/// records exist in the relevant tables (Album, GallerySetting, MimeTypeGallery, Role_Album, UiTemplate,
+		/// UiTemplateAlbum). No changes are made to the file system as part of this operation. This method does not overwrite 
 		/// existing data, but it does insert missing data. This function can be used during application initialization to validate 
 		/// the data integrity for a gallery. For example, if the user has added a record to the MIME types or template gallery 
 		/// settings tables, this method will ensure that the new records are associated with this gallery.

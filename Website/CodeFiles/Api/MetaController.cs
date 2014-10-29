@@ -20,14 +20,119 @@ namespace GalleryServerPro.Web.Api
 		/// <summary>
 		/// Gets a list of tags the current user can view. Guaranteed to not return null.
 		/// </summary>
+		/// <param name="q">The search term. Only tags that begin with this string are returned.
+		/// Specify null or an empty string to return all tags.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify "count" to sort by tag frequency or
+		/// "value" to sort by tag name. When not specified, defaults to "notspecified".</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
 		/// <returns>IEnumerable{Tag}.</returns>
 		/// <exception cref="System.Web.Http.HttpResponseException">Thrown when an error occurs.</exception>
 		[ActionName("Tags")]
-		public IEnumerable<Entity.Tag> GetTags()
+		public IEnumerable<Business.Entity.Tag> GetTags(string q, int galleryId, int top = int.MaxValue, string sortBy = "notspecified", bool sortAscending = false)
 		{
 			try
 			{
-				return MetadataController.GetTags(GetTagSearchOptions(TagSearchType.TagsUserCanView));
+				TagSearchOptions.TagProperty sortProperty;
+				if (!Enum.TryParse(sortBy, true, out sortProperty))
+				{
+					sortProperty = TagSearchOptions.TagProperty.NotSpecified;
+				}
+
+				return MetadataController.GetTags(TagSearchType.TagsUserCanView, q, galleryId, top, sortProperty, sortAscending);
+			}
+			catch (Exception ex)
+			{
+				AppEventController.LogError(ex);
+
+				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+				{
+					Content = Utils.GetExStringContent(ex),
+					ReasonPhrase = "Server Error"
+				});
+			}
+		}
+
+		/// <summary>
+		/// Gets a JSON string representing the tags used in the specified gallery. The JSON can be used as the
+		/// data source for the jsTree jQuery widget. Only tags the current user has permission to view are
+		/// included. The tag tree has a root node containing a single level of tags. Throws an exception when
+		/// the application is not running an Enterprise License.
+		/// </summary>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify "count" to sort by tag frequency or
+		/// "value" to sort by tag name. When not specified, defaults to "count".</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
+		/// <param name="expanded">if set to <c>true</c> the tree is configured to display in an expanded form.</param>
+		/// <returns>System.String.</returns>
+		/// <exception cref="System.Web.Http.HttpResponseException">Thrown when an error occurs.</exception>
+		public string GetTagTreeAsJson(int galleryId, int top = int.MaxValue, string sortBy = "count", bool sortAscending = false, bool expanded = false)
+		{
+			try
+			{
+				ValidateEnterpriseLicense();
+
+				TagSearchOptions.TagProperty sortProperty;
+				if (!Enum.TryParse(sortBy, true, out sortProperty))
+				{
+					sortProperty = TagSearchOptions.TagProperty.NotSpecified;
+				}
+
+				return MetadataController.GetTagTreeAsJson(TagSearchType.TagsUserCanView, galleryId, top, sortProperty, sortAscending, expanded);
+			}
+			catch (GallerySecurityException)
+			{
+				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden));
+			}
+			catch (Exception ex)
+			{
+				AppEventController.LogError(ex);
+
+				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+				{
+					Content = Utils.GetExStringContent(ex),
+					ReasonPhrase = "Server Error"
+				});
+			}
+		}	
+
+		/// <summary>
+		/// Gets a JSON string representing the tags used in the specified gallery. The JSON can be used as the 
+		/// data source for the jsTree jQuery widget. Only tags the current user has permission to view are
+		/// included. The tag tree has a root node containing a single level of tags. Throws an exception when
+		/// the application is not running an Enterprise License.
+		/// </summary>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify "count" to sort by tag frequency or 
+		/// "value" to sort by tag name. When not specified, defaults to "count".</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
+		/// <param name="expanded">if set to <c>true</c> the tree is configured to display in an expanded form.</param>
+		/// <returns>System.String.</returns>
+		/// <exception cref="System.Web.Http.HttpResponseException">Thrown when an error occurs.</exception>
+		public string GetPeopleTreeAsJson(int galleryId, int top = int.MaxValue, string sortBy = "count", bool sortAscending = false, bool expanded = false)
+		{
+			try
+			{
+				TagSearchOptions.TagProperty sortProperty;
+				if (!Enum.TryParse(sortBy, true, out sortProperty))
+				{
+					sortProperty = TagSearchOptions.TagProperty.NotSpecified;
+				}
+
+				return MetadataController.GetTagTreeAsJson(TagSearchType.PeopleUserCanView, galleryId, top, sortProperty, sortAscending, expanded);
+			}
+			catch (GallerySecurityException)
+			{
+				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden));
 			}
 			catch (Exception ex)
 			{
@@ -44,14 +149,29 @@ namespace GalleryServerPro.Web.Api
 		/// <summary>
 		/// Gets a list of people the current user can view. Guaranteed to not return null.
 		/// </summary>
+		/// <param name="q">The search term. Only tags that begin with this string are returned.
+		/// Specify null or an empty string to return all tags.</param>
+		/// <param name="galleryId">The gallery ID.</param>
+		/// <param name="top">The number of tags to return. Values less than zero are treated the same as zero,
+		/// meaning no tags will be returned. Specify <see cref="int.MaxValue" /> to return all tags.</param>
+		/// <param name="sortBy">The property to sort the tags by. Specify "count" to sort by tag frequency or
+		/// "value" to sort by tag name. When not specified, defaults to "notspecified".</param>
+		/// <param name="sortAscending">Specifies whether to sort the tags in ascending order. Specify <c>true</c>
+		/// for ascending order or <c>false</c> for descending order. When not specified, defaults to <c>false</c>.</param>
 		/// <returns>IEnumerable{Tag}.</returns>
 		/// <exception cref="System.Web.Http.HttpResponseException">Thrown when an error occurs.</exception>
 		[ActionName("People")]
-		public IEnumerable<Entity.Tag> GetPeople()
+		public IEnumerable<Business.Entity.Tag> GetPeople(string q, int galleryId, int top = int.MaxValue, string sortBy = "notspecified", bool sortAscending = false)
 		{
 			try
 			{
-				return MetadataController.GetTags(GetTagSearchOptions(TagSearchType.PeopleUserCanView));
+				TagSearchOptions.TagProperty sortProperty;
+				if (!Enum.TryParse(sortBy, true, out sortProperty))
+				{
+					sortProperty = TagSearchOptions.TagProperty.NotSpecified;
+				}
+
+				return MetadataController.GetTags(TagSearchType.PeopleUserCanView, q, galleryId, top, sortProperty, sortAscending);
 			}
 			catch (Exception ex)
 			{
@@ -84,18 +204,18 @@ namespace GalleryServerPro.Web.Api
 			catch (InvalidAlbumException)
 			{
 				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-					                                {
-						                                Content = new StringContent(String.Format("Could not find album with ID {0}", metaItem.MediaId)),
-						                                ReasonPhrase = "Album Not Found"
-					                                });
+																					{
+																						Content = new StringContent(String.Format("Could not find album with ID {0}", metaItem.MediaId)),
+																						ReasonPhrase = "Album Not Found"
+																					});
 			}
 			catch (InvalidMediaObjectException)
 			{
 				throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-					                                {
-						                                Content = new StringContent(String.Format("One of the following errors occurred: (1) Could not find meta item with ID {0} (2) Could not find media object with ID {1} ", metaItem.Id, metaItem.MediaId)),
-						                                ReasonPhrase = "Media Object/Metadata Item Not Found"
-					                                });
+																					{
+																						Content = new StringContent(String.Format("One of the following errors occurred: (1) Could not find meta item with ID {0} (2) Could not find media object with ID {1} ", metaItem.Id, metaItem.MediaId)),
+																						ReasonPhrase = "Media Object/Metadata Item Not Found"
+																					});
 			}
 			catch (GallerySecurityException)
 			{
@@ -151,16 +271,20 @@ namespace GalleryServerPro.Web.Api
 
 		#region Functions
 
-		private static TagSearchOptions GetTagSearchOptions(TagSearchType searchType)
+		/// <summary>
+		/// Verifies the application is running an Enterprise License, throwing a <see cref="GallerySecurityException" />
+		/// if it is not.
+		/// </summary>
+		/// <exception cref="GallerySecurityException">Thrown when the application is not running an Enterprise License.
+		/// </exception>
+		private static void ValidateEnterpriseLicense()
 		{
-			return new TagSearchOptions
-				       {
-					       GalleryId = Utils.GetQueryStringParameterInt32("galleryId"),
-					       SearchType = searchType,
-								 SearchTerm = Utils.GetQueryStringParameterString("q"),
-								 IsUserAuthenticated = Utils.IsAuthenticated,
-					       Roles = RoleController.GetGalleryServerRolesForUser()
-				       };
+			if (AppSetting.Instance.License.LicenseType != LicenseLevel.Enterprise)
+			{
+				AppEventController.LogEvent("Attempt to use a feature that requires an Enterprise License.", null, EventType.Warning);
+
+				throw new GallerySecurityException("Attempt to use a feature that requires an Enterprise License.");
+			}
 		}
 
 		// WARNING: Given the current API, there is no way to verify the user has permission to 

@@ -236,7 +236,7 @@
     <comment>&lt;2007.12.08&gt;</comment>
   </data>
   <data name="Virtual_Album_Title" xml:space="preserve">
-    <value>All albums</value>
+    <value>ALL ALBUMS</value>
     <comment>&lt;2007.12.08&gt; The title given to an album that exists only as a container for other albums and media objects (for example, to contain search results).</comment>
   </data>
   <data name="Metadata_ColorRepresentation_sRGB" xml:space="preserve">
@@ -303,7 +303,7 @@
     <comment>&lt;2010.10.12&gt; Default summary of root album. Make sure it does not contain an apostrophe (').</comment>
   </data>
   <data name="Root_Album_Default_Title" xml:space="preserve">
-    <value>All albums</value>
+    <value>ALL ALBUMS</value>
     <comment>&lt;2010.10.12&gt; Default title of root album. Make sure it does not contain an apostrophe (').</comment>
   </data>
   <data name="Error_Default_Gallery_Object_Album_Invalid_Ex_Msg" xml:space="preserve">

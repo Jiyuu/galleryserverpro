@@ -36,7 +36,7 @@ namespace GalleryServerPro.Web.Api
 				var siblings = mediaObject.Parent.GetChildGalleryObjects(GalleryObjectType.MediaObject, !Utils.IsAuthenticated).ToSortedList();
 				int mediaObjectIndex = siblings.IndexOf(mediaObject);
 
-				return GalleryObjectController.ToMediaItem(mediaObject, mediaObjectIndex + 1, Utils.GetBrowserIdsForCurrentRequest());
+				return GalleryObjectController.ToMediaItem(mediaObject, mediaObjectIndex + 1, MediaObjectHtmlBuilder.GetMediaObjectHtmlBuilderOptions(mediaObject));
 			}
 			catch (InvalidMediaObjectException)
 			{

@@ -1,15 +1,15 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="manageusers.ascx.cs"
-  Inherits="GalleryServerPro.Web.Pages.Admin.manageusers" %>
+	Inherits="GalleryServerPro.Web.Pages.Admin.manageusers" %>
 <%@ Import Namespace="GalleryServerPro.Web" %>
 <%@ Import Namespace="GalleryServerPro.Web.Controller" %>
 <asp:PlaceHolder runat="server">
-  <div class="gsp_indentedContent">
-    <p class="gsp_a_ap_to">
-      <asp:Label ID="lbl1" runat="server" CssClass="gsp_bold" Text="<%$ Resources:GalleryServerPro, Admin_Settings_Apply_To_Label %>"
-        EnableViewState="false" />&nbsp;<asp:Literal runat="server" Text="<%$ Resources:GalleryServerPro, Admin_All_Galleries_Label %>" />
-    </p>
-    <asp:PlaceHolder ID="phAdminHeader" runat="server" />
-    <div class="gsp_addleftpadding5 gsp_usr_ctr">
+	<div class="gsp_indentedContent">
+		<p class="gsp_a_ap_to">
+			<asp:Label ID="lbl1" runat="server" CssClass="gsp_bold" Text="<%$ Resources:GalleryServerPro, Admin_Settings_Apply_To_Label %>"
+				EnableViewState="false" />&nbsp;<asp:Literal runat="server" Text="<%$ Resources:GalleryServerPro, Admin_All_Galleries_Label %>" />
+		</p>
+		<asp:PlaceHolder ID="phAdminHeader" runat="server" />
+		<div class="gsp_addleftpadding5 gsp_usr_ctr">
 			<div id="gsp_optionsHdr" class="gsp_optionsHdr gsp_collapsed ui-corner-top">
 				<p title='<asp:Literal ID="l1" runat="server" Text="<%$ Resources:GalleryServerPro, Site_Options_Tooltip %>" />'>
 					<asp:Literal ID="l2" runat="server" Text="<%$ Resources:GalleryServerPro, Site_Options_Hdr %>" />
@@ -40,118 +40,118 @@
 		 <div class="ui-widget ui-front">
 			<p class="gsp_addleftmargin10"><label for="gsp_usr_srch">Find user: </label><input id="gsp_usr_srch" type="text" class="gsp_mu_srch" /></p>
 		 </div>
-     <div id="<%= cid %>_users" class="gsp_users">
-      </div>
-      <asp:ListBox ID="lbRoles" runat="server" EnableViewState="false" SelectionMode="Multiple" CssClass="gsp_j_rolelist gsp_invisible" />
-      <asp:HiddenField ID="hdnUserRoles" runat="server" />
-    </div>
-    <asp:PlaceHolder ID="phAdminFooter" runat="server" />
-  </div>
-  <script id="<%= cid %>_userTmpl" type="text/x-jsrender">
-    <h3 data-username="{{if #index > 0}}{{:#data}}{{/if}}">
-      <a href="#"><input type="checkbox" class="gsp_chkUser" />{{>#data}}</a>&nbsp;<input type="button" value="Save" class="gsp_userSaveBtn" title="Save this user" />&nbsp;<input type="button" value="Delete" class="gsp_userDeleteBtn" title="Delete this user" />&nbsp;<span class="gsp_waitCtr"></span></h3>
-    <div>
-    </div>
-  </script>
-  <script id="<%= cid %>_userNewTmpl" type="text/x-jsrender">
-    <div id="gsp_userTabContainer" class="gsp_tabContainer">
-      <ul>
-        <li><a href="#gsp_userTabGeneral">New User Info</a></li>
-      </ul>
-      <div id="gsp_userTabGeneral">
-        <table class="gsp_standardTable gsp_mu_eu_tbl">
-          <tr><td class="gsp_col1">User name:</td><td><input type="text" required class="gsp_textbox gsp_mu_eu_n" placeholder="Enter user name" value="" /></td></tr>
-          <tr><td class="gsp_col1">E-mail:</td><td><input type="email" class="gsp_textbox gsp_mu_eu_e" value="" /></td></tr>
-          <tr><td class="gsp_col1">Password:</td><td><input type="password" required class="gsp_textbox gsp_mu_eu_pwd1" value="" /></td></tr>
-          <tr><td class="gsp_col1">Confirm:</td><td><input type="password" required class="gsp_textbox gsp_mu_eu_pwd2" value="" /></td></tr>
-          <tr><td class="gsp_col1">Roles:</td><td class="gsp_col2 gsp_userRolesCell"></td></tr>
-        </table>
-      </div>
-    </div>
-  </script>
-  <script id="<%= cid %>_userEditTmpl" type="text/x-jsrender">
-    <div id="gsp_userTabContainer" class="gsp_tabContainer">
-      <ul>
-        <li><a href="#gsp_userTabGeneral">General</a></li>
-        <li><a href="#gsp_userTabPassword">Password</a></li>
-      </ul>
-      <div id="gsp_userTabGeneral">
-        <table class="gsp_standardTable gsp_mu_eu_tbl">
-          <tr><td class="gsp_col1">Roles:</td><td class="gsp_col2 gsp_userRolesCell"></td></tr>
-          <tr><td class="gsp_col1 gsp_aligntop">Description:</td><td><textarea class="gsp_textarea1 gsp_mu_eu_d" cols="20" rows="2">{{:Comment}}</textarea></td></tr>
-          <tr><td class="gsp_col1">E-mail:</td><td><input type="email" class="gsp_textbox gsp_mu_eu_e" value="{{:Email}}" /></td></tr>
-          <tr><td class="gsp_col1{{if !IsApproved}} gsp_msgattention{{/if}}">Approved?</td><td>
-            <input type="radio" id="gsp_userApprovalYes" name="gspUserApproval" value="approvedYes" {{if IsApproved}} checked{{/if}} class="gsp_mu_eu_app" /><label for="gsp_userApprovalYes">Yes</label>
-            <input type="radio" id="gsp_userApprovalNo" name="gspUserApproval" value="approvedNo" {{if !IsApproved}} checked{{/if}} /><label for="gsp_userApprovalNo">No</label>
-          </td></tr>
-          <tr><td class="gsp_col1{{if IsLockedOut}} gsp_msgattention{{/if}}">Locked?</td><td>
-            <input type="radio" id="gsp_userLockedYes" name="gspUserLocked" value="lockedYes" {{if IsLockedOut}} checked{{/if}} class="gsp_mu_eu_lck" /><label for="gsp_userLockedYes">Yes</label>
-            <input type="radio" id="gsp_userLockedNo" name="gspUserLocked" value="lockedNo" {{if !IsLockedOut}} checked{{/if}} /><label for="gsp_userLockedNo">No</label>
-          </td></tr>
-    {{if ~isUserAlbumEnabled()}}
-          <tr><td class="gsp_col1">Enable user album:</td><td>
-            <input type="radio" id="gsp_userUAYes" name="gspUserAlbum" value="enableUserAlbum" {{if EnableUserAlbum}} checked{{/if}} class="gsp_mu_eu_ua" /><label for="gsp_userUAYes">Yes</label>
-            <input type="radio" id="gsp_userUANo" name="gspUserAlbum" value="enableUserAlbum" {{if !EnableUserAlbum}} checked{{/if}} /><label for="gsp_userUANo">No</label>
-          </td></tr>
-    {{/if}}
-          <tr><td class="gsp_col1">Last activity date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastActivityDate)}}</td></tr>
-          <tr><td class="gsp_col1">Last logon date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastLoginDate)}}</td></tr>
-          <tr><td class="gsp_col1">Last password changed date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastPasswordChangedDate)}}</td></tr>
-          <tr><td class="gsp_col1">Account created:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(CreationDate)}}</td></tr>
-        </table>
-      </div>
-      <div id="gsp_userTabPassword" class="gsp_mu_pwd_tab">
-        <p>
-          <input type="checkbox" id="gsp_pwdOptionReset" name="gspPwdOptionReset" class="gsp_mu_pwd_rst" /><label for="gsp_pwdOptionReset">Reset Password</label>
-        </p>
-        <p class="gsp_mu_pwd_rst_dtl">Resets a user's password to a new, automatically generated password. You will be given the new password so you can notify the user.</p>
-        <p>
-          <input type="checkbox" id="gsp_pwdOptionChange" name="gspPwdOptionChange" class="gsp_mu_pwd_chg" /><label for="gsp_pwdOptionChange">Change Password</label>
-        </p>
-        <section class="gsp_mu_pwd_chg_dtl">
-          <table class="gsp_standardTable gsp_mu_pwd_tbl">
-            <tr>
-              <td class="gsp_col1">New Password:</td>
-              <td class="gsp_col2">
-                <input type="password" required class="gsp_textbox gsp_mu_eu_pwd1" value="" /></td>
-            </tr>
-            <tr>
-              <td class="gsp_col1">Confirm:</td>
-              <td class="gsp_col2">
-                <input type="password" required class="gsp_textbox gsp_mu_eu_pwd2" value="" /></td>
-            </tr>
-          </table>
-        </section>
-        <p class="gsp_addtopmargin10">
-          <input type="checkbox" id="gsp_emailPwd" name="gspEmailPwd" class="gsp_mu_ntf_on_pwd_chg"  /><label for="gsp_emailPwd">E-mail new password to user</label>
-        </p>
-      </div>
-    </div>
-    <div></div>
-  </script>
+		 <div id="<%= cid %>_users" class="gsp_users">
+			</div>
+			<asp:ListBox ID="lbRoles" runat="server" EnableViewState="false" SelectionMode="Multiple" CssClass="gsp_j_rolelist gsp_invisible" />
+			<asp:HiddenField ID="hdnUserRoles" runat="server" />
+		</div>
+		<asp:PlaceHolder ID="phAdminFooter" runat="server" />
+	</div>
+	<script id="<%= cid %>_userTmpl" type="text/x-jsrender">
+		<h3 data-username="{{if #index > 0}}{{: ~htmlEscape(#data)}}{{/if}}">
+			<a href="#"><input type="checkbox" class="gsp_chkUser" />{{>#data}}</a>&nbsp;<input type="button" value="Save" class="gsp_userSaveBtn" title="Save this user" />&nbsp;<input type="button" value="Delete" class="gsp_userDeleteBtn" title="Delete this user" />&nbsp;<span class="gsp_waitCtr"></span></h3>
+		<div>
+		</div>
+	</script>
+	<script id="<%= cid %>_userNewTmpl" type="text/x-jsrender">
+		<div id="gsp_userTabContainer" class="gsp_tabContainer">
+			<ul>
+				<li><a href="#gsp_userTabGeneral">New User Info</a></li>
+			</ul>
+			<div id="gsp_userTabGeneral">
+				<table class="gsp_standardTable gsp_mu_eu_tbl">
+					<tr><td class="gsp_col1">User name:</td><td><input type="text" required class="gsp_textbox gsp_mu_eu_n" placeholder="Enter user name" value="" /></td></tr>
+					<tr><td class="gsp_col1">E-mail:</td><td><input type="email" class="gsp_textbox gsp_mu_eu_e" value="" /></td></tr>
+					<tr><td class="gsp_col1">Password:</td><td><input type="password" required class="gsp_textbox gsp_mu_eu_pwd1" value="" /></td></tr>
+					<tr><td class="gsp_col1">Confirm:</td><td><input type="password" required class="gsp_textbox gsp_mu_eu_pwd2" value="" /></td></tr>
+					<tr><td class="gsp_col1">Roles:</td><td class="gsp_col2 gsp_userRolesCell"></td></tr>
+				</table>
+			</div>
+		</div>
+	</script>
+	<script id="<%= cid %>_userEditTmpl" type="text/x-jsrender">
+		<div id="gsp_userTabContainer" class="gsp_tabContainer">
+			<ul>
+				<li><a href="#gsp_userTabGeneral">General</a></li>
+				<li><a href="#gsp_userTabPassword">Password</a></li>
+			</ul>
+			<div id="gsp_userTabGeneral">
+				<table class="gsp_standardTable gsp_mu_eu_tbl">
+					<tr><td class="gsp_col1">Roles:</td><td class="gsp_col2 gsp_userRolesCell"></td></tr>
+					<tr><td class="gsp_col1 gsp_aligntop">Description:</td><td><textarea class="gsp_textarea1 gsp_mu_eu_d" cols="20" rows="2">{{:Comment}}</textarea></td></tr>
+					<tr><td class="gsp_col1">E-mail:</td><td><input type="email" class="gsp_textbox gsp_mu_eu_e" value="{{:Email}}" /></td></tr>
+					<tr><td class="gsp_col1{{if !IsApproved}} gsp_msgattention{{/if}}">Approved?</td><td>
+						<input type="radio" id="gsp_userApprovalYes" name="gspUserApproval" value="approvedYes" {{if IsApproved}} checked{{/if}} class="gsp_mu_eu_app" /><label for="gsp_userApprovalYes">Yes</label>
+						<input type="radio" id="gsp_userApprovalNo" name="gspUserApproval" value="approvedNo" {{if !IsApproved}} checked{{/if}} /><label for="gsp_userApprovalNo">No</label>
+					</td></tr>
+					<tr><td class="gsp_col1{{if IsLockedOut}} gsp_msgattention{{/if}}">Locked?</td><td>
+						<input type="radio" id="gsp_userLockedYes" name="gspUserLocked" value="lockedYes" {{if IsLockedOut}} checked{{/if}} class="gsp_mu_eu_lck" /><label for="gsp_userLockedYes">Yes</label>
+						<input type="radio" id="gsp_userLockedNo" name="gspUserLocked" value="lockedNo" {{if !IsLockedOut}} checked{{/if}} /><label for="gsp_userLockedNo">No</label>
+					</td></tr>
+		{{if ~isUserAlbumEnabled()}}
+					<tr><td class="gsp_col1">Enable user album:</td><td>
+						<input type="radio" id="gsp_userUAYes" name="gspUserAlbum" value="enableUserAlbum" {{if EnableUserAlbum}} checked{{/if}} class="gsp_mu_eu_ua" /><label for="gsp_userUAYes">Yes</label>
+						<input type="radio" id="gsp_userUANo" name="gspUserAlbum" value="enableUserAlbum" {{if !EnableUserAlbum}} checked{{/if}} /><label for="gsp_userUANo">No</label>
+					</td></tr>
+		{{/if}}
+					<tr><td class="gsp_col1">Last activity date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastActivityDate)}}</td></tr>
+					<tr><td class="gsp_col1">Last logon date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastLoginDate)}}</td></tr>
+					<tr><td class="gsp_col1">Last password changed date:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(LastPasswordChangedDate)}}</td></tr>
+					<tr><td class="gsp_col1">Account created:</td><td class="gsp_msgfriendly">{{: ~getDateAsFormattedString(CreationDate)}}</td></tr>
+				</table>
+			</div>
+			<div id="gsp_userTabPassword" class="gsp_mu_pwd_tab">
+				<p>
+					<input type="checkbox" id="gsp_pwdOptionReset" name="gspPwdOptionReset" class="gsp_mu_pwd_rst" /><label for="gsp_pwdOptionReset">Reset Password</label>
+				</p>
+				<p class="gsp_mu_pwd_rst_dtl">Resets a user's password to a new, automatically generated password. You will be given the new password so you can notify the user.</p>
+				<p>
+					<input type="checkbox" id="gsp_pwdOptionChange" name="gspPwdOptionChange" class="gsp_mu_pwd_chg" /><label for="gsp_pwdOptionChange">Change Password</label>
+				</p>
+				<section class="gsp_mu_pwd_chg_dtl">
+					<table class="gsp_standardTable gsp_mu_pwd_tbl">
+						<tr>
+							<td class="gsp_col1">New Password:</td>
+							<td class="gsp_col2">
+								<input type="password" required class="gsp_textbox gsp_mu_eu_pwd1" value="" /></td>
+						</tr>
+						<tr>
+							<td class="gsp_col1">Confirm:</td>
+							<td class="gsp_col2">
+								<input type="password" required class="gsp_textbox gsp_mu_eu_pwd2" value="" /></td>
+						</tr>
+					</table>
+				</section>
+				<p class="gsp_addtopmargin10">
+					<input type="checkbox" id="gsp_emailPwd" name="gspEmailPwd" class="gsp_mu_ntf_on_pwd_chg"  /><label for="gsp_emailPwd">E-mail new password to user</label>
+				</p>
+			</div>
+		</div>
+		<div></div>
+	</script>
 
-  <script>
-    (function ($) {
-    	jQuery(document).ready(function () {
-    		bindOptions();
-    		bindUserList();
-    		bindUserSearch();
-    		configTooltips();
-    		$("#gsp_usr_srch").focus(); // Don't use autofocus attribute. For some reason it causes the accordian headers to require two clicks
-    	});
+	<script>
+		(function ($) {
+			jQuery(document).ready(function () {
+				bindOptions();
+				bindUserList();
+				bindUserSearch();
+				configTooltips();
+				$("#gsp_usr_srch").focus(); // Don't use autofocus attribute. For some reason it causes the accordian headers to require two clicks
+			});
 
-    	var gspUsers = $.parseJSON('<%= GetUserNames() %>');
-      var gspUserData = null;
-      var $userHtmlCtr = $('#<%= cid %>_users');
-      var $allRoles = $('#<%= lbRoles.ClientID %>');
-    	var userSettings = {
-    		requiresQuestionAndAnswer: <%= UserController.RequiresQuestionAndAnswer.ToString().ToLowerInvariant() %>, 
-      	enablePasswordReset: <%= UserController.EnablePasswordReset.ToString().ToLowerInvariant() %>, 
-      	enablePasswordRetrieval: <%= UserController.EnablePasswordRetrieval.ToString().ToLowerInvariant() %>,
-      	useEmailForAccountName: <%= GallerySettings.UseEmailForAccountName.ToString().ToLowerInvariant() %>
-      	};
+			var gspUsers = $.parseJSON('<%= GetUserNames() %>');
+			var gspUserData = null;
+			var $userHtmlCtr = $('#<%= cid %>_users');
+			var $allRoles = $('#<%= lbRoles.ClientID %>');
+			var userSettings = {
+				requiresQuestionAndAnswer: <%= UserController.RequiresQuestionAndAnswer.ToString().ToLowerInvariant() %>, 
+				enablePasswordReset: <%= UserController.EnablePasswordReset.ToString().ToLowerInvariant() %>, 
+				enablePasswordRetrieval: <%= UserController.EnablePasswordRetrieval.ToString().ToLowerInvariant() %>,
+				useEmailForAccountName: <%= GallerySettings.UseEmailForAccountName.ToString().ToLowerInvariant() %>
+				};
 
-	    var bindUserSearch = function() {
+			var bindUserSearch = function() {
 				var dg;
 				$("#gsp_usr_srch").autocomplete({
 					source: gspUsers,
@@ -170,17 +170,17 @@
 							var users = new Array();
 							users.push(userName);
 							bindUserList(users);
-							$('.ui-accordion-header[data-username=' + userName.replace(' ', '\\ ') + ']').click();
+							$('.ui-accordion-header[data-username="' + userName.replace(/\"/g, '\\"').replace(' ', '\\ ') + '"]').click();
 						} else {
 							dg = $.gspShowMsg('User Not Found', 'The user ' + userName + ' does not exist.', { msgType: 'info', show: 'none', autoCloseDelay: 0 });
 							$(this).focus();
 						}
 					}
 				});
-	    };
-	    
-	    var bindOptions = function () {
-		    
+			};
+			
+			var bindOptions = function () {
+				
 				$('.gsp_optionsHdr').click(function () {
 					$(this).toggleClass("gsp_expanded gsp_collapsed");
 					$('.gsp_optionsDtl').slideToggle('fast');
@@ -231,7 +231,7 @@
 									}
 								});
 							});
-              
+							
 							// Execute all ajax requests, then continue when all have completed
 							$.when.apply($, ajaxArray).then(function() {
 								// All ajax requests succeeded
@@ -288,304 +288,304 @@
 				
 				var tmplData = $("#<%= cid %>_userTmpl").render(users); // Generate the HTML from the template
 
-      	if ($userHtmlCtr.data("isAccordion")) {
-      		$userHtmlCtr.accordion("destroy").data("isAccordion", false);
-      	}
+				if ($userHtmlCtr.data("isAccordion")) {
+					$userHtmlCtr.accordion("destroy").data("isAccordion", false);
+				}
 
-      	$userHtmlCtr.html(tmplData).show().accordion({
-      		active: false,
-      		animated: false,
-      		collapsible: true,
-      		heightStyle: "content", // content, auto, fill
-      		create: usersAccordianOnCreate,
-      		beforeActivate: usersAccordianOnBeforeActivate,
-      		activate: usersAccordianOnActivate
-      	});
+				$userHtmlCtr.html(tmplData).show().accordion({
+					active: false,
+					animated: false,
+					collapsible: true,
+					heightStyle: "content", // content, auto, fill
+					create: usersAccordianOnCreate,
+					beforeActivate: usersAccordianOnBeforeActivate,
+					activate: usersAccordianOnActivate
+				});
 
-      	setUserCheckboxVisibility($("#gsp_showCheckboxes").prop("checked"));
+				setUserCheckboxVisibility($("#gsp_showCheckboxes").prop("checked"));
 
-      	$userHtmlCtr.find("input.gsp_chkUser:checkbox").click(function (e) { e.stopPropagation(); });
-      };
+				$userHtmlCtr.find("input.gsp_chkUser:checkbox").click(function (e) { e.stopPropagation(); });
+			};
 
 			var bindUserData = function (userName, userHeader, userContent) {
 				$.ajax(({
 					type: "GET",
 					url: window.Gsp.AppRoot + '/api/users/getbyusername?userName=' + encodeURIComponent(userName) + '&galleryId=' + window.<%= cid %>.gspData.Settings.GalleryId,
 					dataType: "json",
-      	success: function (user) {
-      		bindUserDataReceived(user, userHeader, userContent);
-      	},
-      	error: function (response) {
-      		$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
-      	},
-      	complete: function () {
-      		$(".gsp_waitCtr", userHeader).removeClass('gsp_wait_center');
-      	}
-      }));
+				success: function (user) {
+					bindUserDataReceived(user, userHeader, userContent);
+				},
+				error: function (response) {
+					$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
+				},
+				complete: function () {
+					$(".gsp_waitCtr", userHeader).removeClass('gsp_wait_center');
+				}
+			}));
 		};
-      
+			
 		var bindUserDataReceived = function (data, userHeader, userContent) {
 			var $rolesEl;
-      
+			
 			var generateHtmlFromTemplate = function () {
 				var $tmpl = gspUserData.IsNew ? $("#<%= cid %>_userNewTmpl") : $("#<%= cid %>_userEditTmpl");
-      	var tmplData = $tmpl.render(gspUserData, { // Generate the HTML from the template
-      		getDateAsFormattedString: function(dateValue) {
-      			if (dateValue != null) {
-      				return Globalize.format(new Date(dateValue), "MMMM dd, yyyy h:mm:ss tt") + ' (UTC)';
-      			} else return "";
-      		},
-      		isUserAlbumEnabled: function() {
-      			return window.<%= cid %>.gspData.Settings.EnableUserAlbum;
-          }
-        });
-        
-      	$(userContent).html(tmplData); // Add the HTML to the page
-      };
-
-    	var bindRoles = function () {
-    		$rolesEl = $allRoles.clone().removeAttr('id').removeClass('gsp_invisible');
-        
-    		// Select the roles that are assigned to this user.
-    		$.each(gspUserData.Roles, function(idx, roleName) {
-    			$("option[value='" + roleName + "']", $rolesEl).prop('selected', true);
-    		});
-
-    		// Add HTML to page
-    		$rolesEl.appendTo($('.gsp_userRolesCell', $userHtmlCtr));
-        
-    		// Now convert the roles list to a jQuery multi-select
-    		$rolesEl
-          .multiselect({
-          	minWidth: 600,
-          	height: 500,
-          	header: '<input id="chkShowOwnerRoles" type="checkbox" /><label for="chkShowOwnerRoles"><%= ShowAlbumOwnerRolesLabel %></label>',
-            noneSelectedText: '&lt;No roles selected&gt;',
-            selectedList: 5,
-            classes: 'gsp_j_rolelist',
-            close: function() {
-            	// Assign selected roles to hidden field
-            	$("#<%= hdnUserRoles.ClientID %>").val(JSON.stringify($rolesEl.val()));
-            }
-          })
-          .multiselect('widget')
-          .appendTo(<%= cid %>.p()); // Move to .gsp_ns namespace so it'll inherit the jQuery UI CSS classes
-
-      	// Override the explicit width assigned by multiselect. For some reason when we say 94% it turns into the desired 100% 
-      	// when we look at it in the browser. We need a timeout to wait for the timeouts in the multiselect widget.
-      	setTimeout(function() { $rolesEl.next().width('94%'); },15);
-       
-      	// Add click handler for the owner role toggle button
-      	$('#chkShowOwnerRoles').click(function() {
-      		if ($(this).prop('checked'))
-      			$(".gsp_j_rolelist .gsp_j_albumownerrole").fadeIn();
-      		else
-      			$(".gsp_j_rolelist .gsp_j_albumownerrole").fadeOut();
-      	});
-        
-      	$('.gsp_j_rolelist .gsp_j_albumownerrole').hide(); // Hide owner roles by default
-      };
-        
-    	var saveUserData = function (e) {
-    		var updateUserDataFromHtml = function () {
-    			if (gspUserData.IsNew) {
-    				gspUserData.UserName = $('.gsp_mu_eu_n', $userHtmlCtr).val().trim();
-            
-    				if (gspUserData.UserName.length == 0)
-    					throw new Error("Enter a user name.");
-    			} else {
-    				gspUserData.Comment = $('.gsp_mu_eu_d', $userHtmlCtr).val();
-    				gspUserData.IsApproved = $('.gsp_mu_eu_app', $userHtmlCtr).prop('checked');
-    				gspUserData.IsLockedOut = $('.gsp_mu_eu_lck', $userHtmlCtr).prop('checked');
-            
-    				if (window.<%= cid %>.gspData.Settings.EnableUserAlbum)
-            gspUserData.EnableUserAlbum = $('.gsp_mu_eu_ua', $userHtmlCtr).prop('checked');
+				var tmplData = $tmpl.render(gspUserData, { // Generate the HTML from the template
+					getDateAsFormattedString: function(dateValue) {
+						if (dateValue != null) {
+							return Globalize.format(new Date(dateValue), "MMMM dd, yyyy h:mm:ss tt") + ' (UTC)';
+						} else return "";
+					},
+					isUserAlbumEnabled: function() {
+						return window.<%= cid %>.gspData.Settings.EnableUserAlbum;
 					}
+				});
+				
+				$(userContent).html(tmplData); // Add the HTML to the page
+			};
 
-        	if (gspUserData.IsNew || $('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked')) {
-        		// This is either a new user or the admin is changing the pwd for an existing user. Grab the new pwd.
-        		gspUserData.Password = $('.gsp_mu_eu_pwd1', $userHtmlCtr).val();
-             
-        		if (gspUserData.Password.length == 0)
-        			throw new Error("Enter a password.");
-        	}
-          
-        	if (!gspUserData.IsNew ) {
-        		gspUserData.PasswordResetRequested = $('.gsp_mu_pwd_rst', $userHtmlCtr).prop('checked');
-        		gspUserData.PasswordChangeRequested = $('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked');
-        		gspUserData.NotifyUserOnPasswordChange = $('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('checked');
-            
-        		if (gspUserData.PasswordChangeRequested && $('.gsp_mu_eu_pwd1', $userHtmlCtr).val() != $('.gsp_mu_eu_pwd2', $userHtmlCtr).val())
-        			throw new Error("Passwords must match.");
-        	}
+			var bindRoles = function () {
+				$rolesEl = $allRoles.clone().removeAttr('id').removeClass('gsp_invisible');
+				
+				// Select the roles that are assigned to this user.
+				$.each(gspUserData.Roles, function(idx, roleName) {
+					$("option[value='" + roleName.replace(/\'/g, '\\\'') + "']", $rolesEl).prop('selected', true);
+				});
 
-        	gspUserData.Email = $('.gsp_mu_eu_e', $userHtmlCtr).val();
-        	gspUserData.Roles = $rolesEl.val() || [];
-        };
-
-      	var onUserSaved = function (response) {
-      		var msgOptions = { msgType: 'success' };
-
-      		if (gspUserData.PasswordResetRequested)
-      			msgOptions.autoCloseDelay = 0;
-          
-      		$.gspShowMsg("Save Successful", response, msgOptions);
-
-      		if (gspUserData.IsNew) {
-      			gspUserData.IsNew = false;
-      			gspUsers.splice(1, 0, gspUserData.UserName);
-
-      			if (gspUsers.length < <%= MaxNumberOfUsersToRender %>) {
-      				bindUserList();
-      			} else {
-      				var users = new Array();
-      				users.push(gspUserData.UserName);
-      				bindUserList(users);
+				// Add HTML to page
+				$rolesEl.appendTo($('.gsp_userRolesCell', $userHtmlCtr));
+				
+				// Now convert the roles list to a jQuery multi-select
+				$rolesEl
+					.multiselect({
+						minWidth: 600,
+						height: 500,
+						header: '<input id="chkShowOwnerRoles" type="checkbox" /><label for="chkShowOwnerRoles"><%= ShowAlbumOwnerRolesLabel %></label>',
+						noneSelectedText: '&lt;No roles selected&gt;',
+						selectedList: 5,
+						classes: 'gsp_j_rolelist',
+						close: function() {
+							// Assign selected roles to hidden field
+							$("#<%= hdnUserRoles.ClientID %>").val(JSON.stringify($rolesEl.val()));
 						}
-      			
-      			$('.ui-accordion-header[data-username=' + gspUserData.UserName.replace(' ', '\\ ') + ']').click();
-      			$("#gsp_usr_srch").val('');
+					})
+					.multiselect('widget')
+					.appendTo(<%= cid %>.p()); // Move to .gsp_ns namespace so it'll inherit the jQuery UI CSS classes
+
+				// Override the explicit width assigned by multiselect. For some reason when we say 94% it turns into the desired 100% 
+				// when we look at it in the browser. We need a timeout to wait for the timeouts in the multiselect widget.
+				setTimeout(function() { $rolesEl.next().width('94%'); },15);
+			 
+				// Add click handler for the owner role toggle button
+				$('#chkShowOwnerRoles').click(function() {
+					if ($(this).prop('checked'))
+						$(".gsp_j_rolelist .gsp_j_albumownerrole").fadeIn();
+					else
+						$(".gsp_j_rolelist .gsp_j_albumownerrole").fadeOut();
+				});
+				
+				$('.gsp_j_rolelist .gsp_j_albumownerrole').hide(); // Hide owner roles by default
+			};
+				
+			var saveUserData = function (e) {
+				var updateUserDataFromHtml = function () {
+					if (gspUserData.IsNew) {
+						gspUserData.UserName = $('.gsp_mu_eu_n', $userHtmlCtr).val().trim();
+						
+						if (gspUserData.UserName.length == 0)
+							throw new Error("Enter a user name.");
+					} else {
+						gspUserData.Comment = $('.gsp_mu_eu_d', $userHtmlCtr).val();
+						gspUserData.IsApproved = $('.gsp_mu_eu_app', $userHtmlCtr).prop('checked');
+						gspUserData.IsLockedOut = $('.gsp_mu_eu_lck', $userHtmlCtr).prop('checked');
+						
+						if (window.<%= cid %>.gspData.Settings.EnableUserAlbum)
+						gspUserData.EnableUserAlbum = $('.gsp_mu_eu_ua', $userHtmlCtr).prop('checked');
 					}
-      		else
-      			bindExistingUser();
 
-      		gspUserData.PasswordResetRequested = false;
-      		gspUserData.PasswordChangeRequested = false;
-      	};
+					if (gspUserData.IsNew || $('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked')) {
+						// This is either a new user or the admin is changing the pwd for an existing user. Grab the new pwd.
+						gspUserData.Password = $('.gsp_mu_eu_pwd1', $userHtmlCtr).val();
+						 
+						if (gspUserData.Password.length == 0)
+							throw new Error("Enter a password.");
+					}
+					
+					if (!gspUserData.IsNew ) {
+						gspUserData.PasswordResetRequested = $('.gsp_mu_pwd_rst', $userHtmlCtr).prop('checked');
+						gspUserData.PasswordChangeRequested = $('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked');
+						gspUserData.NotifyUserOnPasswordChange = $('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('checked');
+						
+						if (gspUserData.PasswordChangeRequested && $('.gsp_mu_eu_pwd1', $userHtmlCtr).val() != $('.gsp_mu_eu_pwd2', $userHtmlCtr).val())
+							throw new Error("Passwords must match.");
+					}
+					
+					gspUserData.Email = $('.gsp_mu_eu_e', $userHtmlCtr).val();
+					gspUserData.Roles = $rolesEl.val() || [];
+				};
 
-      	var imgWait = $(".ui-accordion-header.ui-state-active .gsp_waitCtr", $userHtmlCtr).addClass('gsp_wait_center');
+				var onUserSaved = function (response) {
+					var msgOptions = { msgType: 'success' };
 
-      	try {
-      		updateUserDataFromHtml();
+					if (gspUserData.PasswordResetRequested)
+						msgOptions.autoCloseDelay = 0;
+					
+					$.gspShowMsg("Save Successful", response, msgOptions);
 
-      		// Send role data to the server for saving
-      		$.ajax(({
-      			type: "POST",
-      			url: window.Gsp.AppRoot + '/api/users/',
-      			data: JSON.stringify(gspUserData),
-      			contentType: "application/json; charset=utf-8",
-      			success: function(response) {
-      				onUserSaved(response);
-      			},
-      			error: function (response) {
-      				$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
-      			},
-      			complete: function() {
-      				imgWait.removeClass('gsp_wait_center');
-      			}
-      		}));
-      	} catch (ex) {
-      		$.gspShowMsg("Action Aborted", ex.message, { msgType: 'error', autoCloseDelay: 0 });
-      		imgWait.removeClass('gsp_wait_center');
-      	}
+					if (gspUserData.IsNew) {
+						gspUserData.IsNew = false;
+						gspUsers.splice(1, 0, gspUserData.UserName);
 
-      	return false;
-      };
+						if (gspUsers.length < <%= MaxNumberOfUsersToRender %>) {
+							bindUserList();
+						} else {
+							var users = new Array();
+							users.push(gspUserData.UserName);
+							bindUserList(users);
+						}
+						
+						$('.ui-accordion-header[data-username="' + gspUserData.UserName.replace(/\"/g, '\\"').replace(' ', '\\ ') + '"]').click();
+						$("#gsp_usr_srch").val('');
+					}
+					else
+						bindExistingUser();
 
-    	var userDeleteClick = function (e) {
-    		var deleteUser = function (user) {
+					gspUserData.PasswordResetRequested = false;
+					gspUserData.PasswordChangeRequested = false;
+				};
 
-    			var onUserDeleted = function (response) {
-    				$.gspShowMsg("User Deleted", response, { msgType: 'success', show: 'none' });
+				var imgWait = $(".ui-accordion-header.ui-state-active .gsp_waitCtr", $userHtmlCtr).addClass('gsp_wait_center');
 
-    				gspUsers = $.grep(gspUsers, function (value) {
-    					return value != user.UserName;
-    				});
+				try {
+					updateUserDataFromHtml();
 
-    				bindUserList();
-    				$('#gsp_usr_srch').val('').autocomplete('option', 'source', gspUsers).focus();
-    			};
+					// Send role data to the server for saving
+					$.ajax(({
+						type: "POST",
+						url: window.Gsp.AppRoot + '/api/users/',
+						data: JSON.stringify(gspUserData),
+						contentType: "application/json; charset=utf-8",
+						success: function(response) {
+							onUserSaved(response);
+						},
+						error: function (response) {
+							$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
+						},
+						complete: function() {
+							imgWait.removeClass('gsp_wait_center');
+						}
+					}));
+				} catch (ex) {
+					$.gspShowMsg("Action Aborted", ex.message, { msgType: 'error', autoCloseDelay: 0 });
+					imgWait.removeClass('gsp_wait_center');
+				}
 
-    			var imgWait = $(".gsp_waitCtr", userHeader).addClass('gsp_wait_center');
+				return false;
+			};
 
-    			$.ajax(({
-    				type: "DELETE",
-    				url: window.Gsp.AppRoot + '/api/users/deletebyusername?userName=' + encodeURI(gspUserData.UserName),
-    				success: function(response) {
-    					onUserDeleted(response);
-    				},
-    				error: function (response) {
-    					$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
-    				},
-    				complete: function() {
-    					imgWait.removeClass('gsp_wait_center');
-    				}
-    			}));
-    		};
+			var userDeleteClick = function (e) {
+				var deleteUser = function (user) {
 
-    		if (confirm("Are you sure you want to delete the user '" + gspUserData.UserName + "'?")) {
-    			deleteUser(gspUserData);
-    		}
+					var onUserDeleted = function (response) {
+						$.gspShowMsg("User Deleted", response, { msgType: 'success', show: 'none' });
 
-    		$(this).removeClass("ui-state-focus");
-    		return false;
-    	};
-      
-    	var bindPwdInputs = function() {
-    		$('.gsp_mu_eu_pwd1, .gsp_mu_eu_pwd2', $userHtmlCtr).change(function() {
-    			var $pwd1 = $('.gsp_mu_eu_pwd1', $userHtmlCtr); 
-    			var $pwd2 = $('.gsp_mu_eu_pwd2', $userHtmlCtr);
-    			var pwd1 = $pwd1.val();
-    			var pwd2 = $pwd2.val();
-          
-    			$pwd1.next('.gsp_msgwarning').remove();
-          
-    			if (pwd1.length > 0 && pwd2.length > 0 && pwd1 !== pwd2)
-    				$pwd1.after('<span class="gsp_addleftpadding1 gsp_msgwarning">Passwords must match</span>');
-    		});
-    	};
-        
-    	var bindNewUser = function() {
-    		// Configure the new user form
-    		bindPwdInputs();
-        
-    		$('.gsp_mu_eu_n', $userHtmlCtr).change(function() {
-    			var $userName = $(this);
-    			$.ajax(({
-    				type: "GET",
-    				url: window.Gsp.AppRoot + '/api/users/exists?userName=' + encodeURIComponent($userName.val()),
-    				success: function (userExists) {
-    					$userName.next('.gsp_mu_eu_n_msg').remove();
-    					if (userExists)
-    						$userName.after('<span class="gsp_addleftpadding1 gsp_mu_eu_n_msg gsp_msgwarning"><%= Resources.GalleryServerPro.Site_UserNameIsDuplicate %></span>');
-              else
-              	$userName.after('<span class="gsp_addleftpadding1 gsp_mu_eu_n_msg gsp_msgfriendly"><%= Resources.GalleryServerPro.Site_UserNameAvailable %></span>');
-            }
-          }));
-        }).focus();
-      };
-      
-    	var bindExistingUser = function() {
-    		// Configure the edit user form
-    		var bindPwdTab = function() {
-    			var setChgPwdDtlEnabled = function(isEnabled) {
-    				$('.gsp_mu_pwd_chg_dtl').toggleClass('gsp_disabledtext', !isEnabled);
-    				$('.gsp_mu_pwd_chg_dtl input').prop('disabled', !isEnabled);
-    			};
+						gspUsers = $.grep(gspUsers, function (value) {
+							return value != user.UserName;
+						});
 
-    			var setRstPwdDtlEnabled = function(isEnabled) {
-    				$('.gsp_mu_pwd_rst_dtl').toggleClass('gsp_disabledtext', !isEnabled);
-    			};
+						bindUserList();
+						$('#gsp_usr_srch').val('').autocomplete('option', 'source', gspUsers).focus();
+					};
 
-    			var setChgPwdEnabled = function(isEnabled) {
-    				$('.gsp_mu_pwd_chg').prop('disabled', !isEnabled).next('label').toggleClass('gsp_disabledtext', !isEnabled);
-    			};
+					var imgWait = $(".gsp_waitCtr", userHeader).addClass('gsp_wait_center');
 
-    			var setRstPwdEnabled = function(isEnabled) {
-    				$('.gsp_mu_pwd_rst').prop('disabled', !isEnabled).next('label').toggleClass('gsp_disabledtext', !isEnabled);
-    			};
+					$.ajax(({
+						type: "DELETE",
+						url: window.Gsp.AppRoot + '/api/users/deletebyusername?userName=' + encodeURI(gspUserData.UserName),
+						success: function(response) {
+							onUserDeleted(response);
+						},
+						error: function (response) {
+							$.gspShowMsg("Action Aborted", response.responseText, { msgType: 'error', autoCloseDelay: 0 });
+						},
+						complete: function() {
+							imgWait.removeClass('gsp_wait_center');
+						}
+					}));
+				};
 
-    			// Alert admin when there is an incompatible membership setting in web.config
-    			var showPwdMsg = function() {          
-    				var needToShowMsg = false;
-    				var msg = "<section class='gsp_mu_pwd_msg gsp_msgfriendly'><p>ATTENTION</p><ul>";
-            
-    				if (userSettings.requiresQuestionAndAnswer) // Can't change or reset password
-    				{
-    					setChgPwdEnabled(false);
-    					setRstPwdEnabled(false);
-    					msg += '<li><%= QuestionAnswerEnabledMsg %></li>';
-              needToShowMsg = true;
+				if (confirm("Are you sure you want to delete the user '" + gspUserData.UserName + "'?")) {
+					deleteUser(gspUserData);
+				}
+
+				$(this).removeClass("ui-state-focus");
+				return false;
+			};
+			
+			var bindPwdInputs = function() {
+				$('.gsp_mu_eu_pwd1, .gsp_mu_eu_pwd2', $userHtmlCtr).change(function() {
+					var $pwd1 = $('.gsp_mu_eu_pwd1', $userHtmlCtr); 
+					var $pwd2 = $('.gsp_mu_eu_pwd2', $userHtmlCtr);
+					var pwd1 = $pwd1.val();
+					var pwd2 = $pwd2.val();
+					
+					$pwd1.next('.gsp_msgwarning').remove();
+					
+					if (pwd1.length > 0 && pwd2.length > 0 && pwd1 !== pwd2)
+						$pwd1.after('<span class="gsp_addleftpadding1 gsp_msgwarning">Passwords must match</span>');
+				});
+			};
+				
+			var bindNewUser = function() {
+				// Configure the new user form
+				bindPwdInputs();
+				
+				$('.gsp_mu_eu_n', $userHtmlCtr).change(function() {
+					var $userName = $(this);
+					$.ajax(({
+						type: "GET",
+						url: window.Gsp.AppRoot + '/api/users/exists?userName=' + encodeURIComponent($userName.val()),
+						success: function (userExists) {
+							$userName.next('.gsp_mu_eu_n_msg').remove();
+							if (userExists)
+								$userName.after('<span class="gsp_addleftpadding1 gsp_mu_eu_n_msg gsp_msgwarning"><%= Resources.GalleryServerPro.Site_UserNameIsDuplicate %></span>');
+							else
+								$userName.after('<span class="gsp_addleftpadding1 gsp_mu_eu_n_msg gsp_msgfriendly"><%= Resources.GalleryServerPro.Site_UserNameAvailable %></span>');
+						}
+					}));
+				}).focus();
+			};
+			
+			var bindExistingUser = function() {
+				// Configure the edit user form
+				var bindPwdTab = function() {
+					var setChgPwdDtlEnabled = function(isEnabled) {
+						$('.gsp_mu_pwd_chg_dtl').toggleClass('gsp_disabledtext', !isEnabled);
+						$('.gsp_mu_pwd_chg_dtl input').prop('disabled', !isEnabled);
+					};
+
+					var setRstPwdDtlEnabled = function(isEnabled) {
+						$('.gsp_mu_pwd_rst_dtl').toggleClass('gsp_disabledtext', !isEnabled);
+					};
+
+					var setChgPwdEnabled = function(isEnabled) {
+						$('.gsp_mu_pwd_chg').prop('disabled', !isEnabled).next('label').toggleClass('gsp_disabledtext', !isEnabled);
+					};
+
+					var setRstPwdEnabled = function(isEnabled) {
+						$('.gsp_mu_pwd_rst').prop('disabled', !isEnabled).next('label').toggleClass('gsp_disabledtext', !isEnabled);
+					};
+
+					// Alert admin when there is an incompatible membership setting in web.config
+					var showPwdMsg = function() {          
+						var needToShowMsg = false;
+						var msg = "<section class='gsp_mu_pwd_msg gsp_msgfriendly'><p>ATTENTION</p><ul>";
+						
+						if (userSettings.requiresQuestionAndAnswer) // Can't change or reset password
+						{
+							setChgPwdEnabled(false);
+							setRstPwdEnabled(false);
+							msg += '<li><%= QuestionAnswerEnabledMsg %></li>';
+							needToShowMsg = true;
 						}
 						else
 						{
@@ -593,94 +593,94 @@
 							{
 								setRstPwdEnabled(false);
 								msg += '<li><%= PwdResetDisabledMsg %></li>';
-                needToShowMsg = true;
+								needToShowMsg = true;
 							}
 
 							if (!userSettings.enablePasswordRetrieval) // Can't change password
 							{
 								setChgPwdEnabled(false);
 								msg += '<li><%= PwdRetrievalDisabledMsg %></li>';
-                needToShowMsg = true;
+								needToShowMsg = true;
 							}
 						}
 
-          	msg += "</ul></section>";
-      
-          	if (needToShowMsg)
-          		$userHtmlCtr.find('.gsp_mu_pwd_msg').remove().end().find('.gsp_mu_pwd_tab').prepend(msg);
-          };
+						msg += "</ul></section>";
+			
+						if (needToShowMsg)
+							$userHtmlCtr.find('.gsp_mu_pwd_msg').remove().end().find('.gsp_mu_pwd_tab').prepend(msg);
+					};
 
-        	// When 'reset pwd' is checked, enable child elements and disable change pwd
-        	$('.gsp_mu_pwd_rst', $userHtmlCtr).change(function() {
-        		var isRstPwdChkd = $(this).prop('checked');
+					// When 'reset pwd' is checked, enable child elements and disable change pwd
+					$('.gsp_mu_pwd_rst', $userHtmlCtr).change(function() {
+						var isRstPwdChkd = $(this).prop('checked');
 
-        		if (isRstPwdChkd) {
-        			$('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked', false);
-        			setChgPwdDtlEnabled(false);
-        		}
-        		setRstPwdDtlEnabled(isRstPwdChkd);
-        	});
+						if (isRstPwdChkd) {
+							$('.gsp_mu_pwd_chg', $userHtmlCtr).prop('checked', false);
+							setChgPwdDtlEnabled(false);
+						}
+						setRstPwdDtlEnabled(isRstPwdChkd);
+					});
 
-        	// When 'change pwd' is checked, enable child elements and disable reset pwd
-        	$('.gsp_mu_pwd_chg', $userHtmlCtr).change(function() {
-        		var isChgPwdChkd = $(this).prop('checked');
+					// When 'change pwd' is checked, enable child elements and disable reset pwd
+					$('.gsp_mu_pwd_chg', $userHtmlCtr).change(function() {
+						var isChgPwdChkd = $(this).prop('checked');
 
-        		if (isChgPwdChkd) {
-        			$('.gsp_mu_pwd_rst', $userHtmlCtr).prop('checked', false);
-        			setRstPwdDtlEnabled(false);
-        		}
-        		setChgPwdDtlEnabled(isChgPwdChkd);
-        	});
+						if (isChgPwdChkd) {
+							$('.gsp_mu_pwd_rst', $userHtmlCtr).prop('checked', false);
+							setRstPwdDtlEnabled(false);
+						}
+						setChgPwdDtlEnabled(isChgPwdChkd);
+					});
 
-        	// Enable/disable the 'notify user' checkbox based on whether a valid email exists
-        	$('.gsp_mu_eu_e', $userHtmlCtr).change(function() {
-        		if (!window.Gsp.hasFormValidation())
-        			return; // Browser doesn't support form validation, so just leave the checkbox enabled.
-            
-        		if ($(this).val().length > 0 && $(this)[0].checkValidity())
-        			$('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('disabled', false).next('label').removeClass('gsp_disabledtext').text('E-mail new password to user');
-        		else
-        			$('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('disabled', true).next('label').addClass('gsp_disabledtext').text('E-mail new password to user (Disabled because user does not have an e-mail)');
-        	}).change();
+					// Enable/disable the 'notify user' checkbox based on whether a valid email exists
+					$('.gsp_mu_eu_e', $userHtmlCtr).change(function() {
+						if (!window.Gsp.hasFormValidation())
+							return; // Browser doesn't support form validation, so just leave the checkbox enabled.
+						
+						if ($(this).val().length > 0 && $(this)[0].checkValidity())
+							$('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('disabled', false).next('label').removeClass('gsp_disabledtext').text('E-mail new password to user');
+						else
+							$('.gsp_mu_ntf_on_pwd_chg', $userHtmlCtr).prop('disabled', true).next('label').addClass('gsp_disabledtext').text('E-mail new password to user (Disabled because user does not have an e-mail)');
+					}).change();
 
-        	setRstPwdDtlEnabled(false);
-        	setChgPwdDtlEnabled(false);
-        	bindPwdInputs();
-        	showPwdMsg();
-        };
+					setRstPwdDtlEnabled(false);
+					setChgPwdDtlEnabled(false);
+					bindPwdInputs();
+					showPwdMsg();
+				};
 
-      	var bindGeneralTab = function() {
-      		$("input.gsp_userDeleteBtn", userHeader).show().click(userDeleteClick);
-      	};
+				var bindGeneralTab = function() {
+					$("input.gsp_userDeleteBtn", userHeader).show().click(userDeleteClick);
+				};
 
-      	bindGeneralTab();
-      	bindPwdTab();
-      };
+				bindGeneralTab();
+				bindPwdTab();
+			};
 
-    	gspUserData = data;
-    	generateHtmlFromTemplate();
-    	$("div:first", userContent).tabs().show();
-    	bindRoles();
-        
-    	$("input.gsp_userSaveBtn", userHeader).show().click(saveUserData);
+			gspUserData = data;
+			generateHtmlFromTemplate();
+			$("div:first", userContent).tabs().show();
+			bindRoles();
+				
+			$("input.gsp_userSaveBtn", userHeader).show().click(saveUserData);
 
-    	if (gspUserData.IsNew)
-    		bindNewUser();
-    	else
-    		bindExistingUser();
-        
-    	if (window.<%= cid %>.gspData.App.IsInReducedFunctionalityMode)
-      $("input", userHeader).prop('disabled', true).attr('title', 'Disabled - Enter a product key to restore functionality');
-    };
-    
+			if (gspUserData.IsNew)
+				bindNewUser();
+			else
+				bindExistingUser();
+				
+			if (window.<%= cid %>.gspData.App.IsInReducedFunctionalityMode)
+			$("input", userHeader).prop('disabled', true).attr('title', 'Disabled - Enter a product key to restore functionality');
+		};
+		
 		var configTooltips = function () {
 			$('.gsp_admin_h2_txt', '#<%= cid %>').gspTooltip({
-    		title: '<%= Resources.GalleryServerPro.Admin_Manage_Users_Overview_Hdr.JsEncode() %>',
-      	content: '<%= Resources.GalleryServerPro.Admin_Manage_Users_Overview_Bdy.JsEncode() %>'
-      });
-    };
+				title: '<%= Resources.GalleryServerPro.Admin_Manage_Users_Overview_Hdr.JsEncode() %>',
+				content: '<%= Resources.GalleryServerPro.Admin_Manage_Users_Overview_Bdy.JsEncode() %>'
+			});
+		};
 
 		})(jQuery);
-  </script>
+	</script>
 
 </asp:PlaceHolder>

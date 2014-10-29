@@ -263,8 +263,8 @@ namespace GalleryServerPro.Data
 			// Now change the values for ProductKey and DataSchemaVersion.
 			dtDest.Select("SettingName = 'ProductKey'").First()["SettingValue"] = "";
 			dtDest.Select("SettingName = 'DataSchemaVersion'").First()["SettingValue"] = GalleryDataSchemaVersionEnumHelper.ConvertGalleryDataSchemaVersionToString(GalleryDb.DataSchemaVersion);
-			dtDest.Select("SettingName = 'JQueryScriptPath'").First()["SettingValue"] = "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js";
-			dtDest.Select("SettingName = 'JQueryUiScriptPath'").First()["SettingValue"] = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js";
+			dtDest.Select("SettingName = 'JQueryScriptPath'").First()["SettingValue"] = "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js";
+			dtDest.Select("SettingName = 'JQueryUiScriptPath'").First()["SettingValue"] = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js";
 
 			// Add new settings Skin and JQueryMigrateScriptPath.
 			var dr = dtDest.NewRow();

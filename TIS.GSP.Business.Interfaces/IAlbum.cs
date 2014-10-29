@@ -164,6 +164,16 @@ namespace GalleryServerPro.Business.Interfaces
 		}
 
 		/// <summary>
+		/// Gets or sets the feed formatter options. This property is used when generating an RSS/Atom feed.
+		/// </summary>
+		/// <value>The feed formatter options.</value>
+		IFeedFormatterOptions FeedFormatterOptions
+		{
+			get;
+			set;
+		}
+
+		/// <summary>
 		/// Sorts the gallery objects in this album by the <see cref="SortByMetaName" /> field in the order specified by
 		/// <see cref="SortAscending" />, optionally persisting the changes to the database, activing recursively and - when
 		/// acting recursively, optionally replacing the sort field and direction on child albums with the values from the 

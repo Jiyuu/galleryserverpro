@@ -65,14 +65,17 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
@@ -87,6 +90,7 @@
     <Compile Include="IMediaEncoderSettingsCollection.cs" />
     <Compile Include="IMediaEncoderSettings.cs" />
     <Compile Include="IMetaValue.cs" />
+    <Compile Include="IFeedFormatterOptions.cs" />
     <Compile Include="IUiTemplate.cs" />
     <Compile Include="IUiTemplateCollection.cs" />
     <Compile Include="IMetadataDefinition.cs" />
@@ -124,7 +128,6 @@
     <Compile Include="IMimeType.cs" />
     <Compile Include="ISaveBehavior.cs" />
     <Compile Include="ISynchronizationStatus.cs" />
-    <Compile Include="IMediaObjectHtmlBuilder.cs" />
     <Compile Include="IUserGalleryProfile.cs" />
     <Compile Include="IWpfMetadata.cs" />
     <Compile Include="Enum\MetaDataEnums.cs" />

@@ -177,6 +177,7 @@ namespace GalleryServerPro.Business
 			return newBmp;
 		}
 
+		/// <overloads>Persist the specified image to disk at the specified path.</overloads>
 		/// <summary>
 		/// Persist the specified image to disk at the specified path. If the directory to contain the file does not exist, it
 		/// is automatically created.
@@ -192,12 +193,35 @@ namespace GalleryServerPro.Business
 			if (imageFormat == null)
 				throw new ArgumentNullException("imageFormat");
 
+			if (String.IsNullOrEmpty(newFilePath))
+				throw new ArgumentNullException("newFilePath");
+
 			VerifyDirectoryExistsForNewFile(newFilePath);
 
 			if (imageFormat.Equals(ImageFormat.Jpeg))
 				SaveJpgImageToDisk(image, newFilePath, jpegQuality);
 			else
 				SaveNonJpgImageToDisk(image, newFilePath, imageFormat);
+		}
+
+		/// <summary>
+		/// Persist the specified image to disk at the specified path. If the directory to contain the file does not exist, it
+		/// is automatically created.
+		/// </summary>
+		/// <param name="imageData">The image to persist to disk.</param>
+		/// <param name="newFilePath">The full physical path, including the file name to where the image is to be stored. Ex: C:\mypics\cache\2008\May\flower.jpg</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="imageData" /> or <paramref name="newFilePath" /> is null.</exception>
+		public static void SaveImageToDisk(byte[] imageData, string newFilePath)
+		{
+			if (imageData == null)
+				throw new ArgumentNullException("imageData");
+
+			if (String.IsNullOrEmpty(newFilePath))
+				throw new ArgumentNullException("newFilePath");
+
+			VerifyDirectoryExistsForNewFile(newFilePath);
+
+			File.WriteAllBytes(newFilePath, imageData);
 		}
 
 		#endregion

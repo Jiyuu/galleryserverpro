@@ -29,6 +29,14 @@ namespace GalleryServerPro.Web.Pages.Admin
 		}
 
 		/// <summary>
+		/// Gets the text to use when no album has been assigned.
+		/// </summary>
+		private static string NoAlbumText
+		{
+		  get { return Resources.GalleryServerPro.Admin_User_Settings_User_Album_Parent_Not_Assigned_Text; }
+		}
+
+		/// <summary>
 		/// Gets or sets a value indicating whether an error occurred while preparing the data to save.
 		/// </summary>
 		/// <value><c>true</c> if an error is preventing the data from being saved; otherwise, <c>false</c>.</value>
@@ -288,7 +296,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 			}
 			else
 			{
-				DefaultAlbumTitle = Resources.GalleryServerPro.Admin_User_Settings_User_Album_Parent_Not_Assigned_Text;
+				DefaultAlbumTitle = NoAlbumText;
 			}
 		}
 
@@ -401,7 +409,7 @@ namespace GalleryServerPro.Web.Pages.Admin
 		private void ClearDefaultAlbum()
 		{
 			GalleryControlSettingsUpdateable.AlbumId = null;
-			DefaultAlbumTitle = Resources.GalleryServerPro.Admin_User_Settings_User_Album_Parent_Not_Assigned_Text;
+			DefaultAlbumTitle = NoAlbumText;
 			tvUC.SelectedAlbumIds.Clear();
 		}
 

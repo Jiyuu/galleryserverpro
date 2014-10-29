@@ -948,11 +948,11 @@ namespace GalleryServerPro.Business
 			}
 		}
 
-		private static void InitializeDataStore()
+		private void InitializeDataStore()
 		{
 			System.Data.Entity.Database.SetInitializer(new System.Data.Entity.MigrateDatabaseToLatestVersion<GalleryDb, GalleryDbMigrationConfiguration>());
 
-			var configuration = new GalleryDbMigrationConfiguration();
+			var configuration = new GalleryDbMigrationConfiguration(ProviderDataStore);
 			var migrator = new System.Data.Entity.Migrations.DbMigrator(configuration);
 			if (migrator.GetPendingMigrations().Any())
 			{

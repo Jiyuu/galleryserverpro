@@ -84,21 +84,6 @@ namespace GalleryServerPro.Business
 		public const string ActiveDirectoryMembershipProviderName = "System.Web.Security.ActiveDirectoryMembershipProvider";
 
 		/// <summary>
-		/// Gets the name of the name of the product key for the GPL version of Gallery Server Pro.
-		/// </summary>
-		public const string ProductKeyGpl = "FLATIRONS";
-
-		/// <summary>
-		/// Gets the name of the name of the product key for the Professional version of Gallery Server Pro.
-		/// </summary>
-		public const string ProductKeyProfessional = "LONGS_PEAK";
-
-		/// <summary>
-		/// Gets the name of the name of the product key for the Enterprise version of Gallery Server Pro.
-		/// </summary>
-		public const string ProductKeyEnterprise = "MOUNT_PRINCETON";
-
-		/// <summary>
 		/// Gets the number of days Gallery Server Pro is fully functional before it requires a product key to be entered.
 		/// Default value = 30.
 		/// </summary>

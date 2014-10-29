@@ -14,6 +14,12 @@ namespace GalleryServerPro.Data
 	/// </summary>
 	public static class SeedController
 	{
+		#region Fields
+
+		private const string DefaultTmplName = "Default";
+
+		#endregion
+
 		#region Properties
 
 		/// <summary>
@@ -41,17 +47,16 @@ namespace GalleryServerPro.Data
 
 {{if Settings.ShowLogin}}
  {{if User.IsAuthenticated}}
-	{{if Settings.AllowManageOwnAccount}}
-	<div class='gsp_useroption'>
-	 <a class='gsp_myaccountlink' href='{{:App.CurrentPageUrl}}?g=myaccount&aid={{:Album.Id}}'>
-		<img class='gsp_myaccount-user-icon' title='{{:Resource.HdrMyAccountTt}}' alt='{{:Resource.HdrMyAccountTt}}' src='{{:App.SkinPath}}/images/user-l.png'>
-	 </a></div>
-	 {{/if}}
 	 <div class='gsp_logoffLinkCtr gsp_useroption'>
 		<a class='gsp_logoffLink' href='javascript:void(0);' title='{{:Resource.HdrLogoutTt}}'>
 		 <img alt='{{:Resource.HdrLogoutTt}}' src='{{:App.SkinPath}}/images/logoff-l.png' title='{{:Resource.HdrLogoutTt}}'></a></div>
 	 <div class='loggedonview gsp_useroption'>
-		<span id='{{:Settings.ClientId}}_userwelcome' class='gsp_welcome'>{{:User.UserName}}</span></div>
+	 {{if Settings.AllowManageOwnAccount}}
+		<a id='{{:Settings.ClientId}}_userwelcome' href='{{:App.CurrentPageUrl}}?g=myaccount&aid={{:Album.Id}}' class='gsp_welcome' title='{{:Resource.HdrMyAccountTt}}'>{{:User.UserName}}</a>
+	 {{else}}
+		<span id='{{:Settings.ClientId}}_userwelcome' class='gsp_welcome'>{{:User.UserName}}</span>
+	 {{/if}}
+	 </div>
  {{else}}
 	{{if Settings.EnableSelfRegistration}}
 	 <div class='gsp_createaccount gsp_useroption'>
@@ -177,6 +182,49 @@ $('#{{:Settings.MediaClientId}}').gspMedia('{{:Settings.MediaTmplName}}', window
 		}
 
 		/// <summary>
+		/// Gets the default HTML template for the left pane UI template. The replacement tokens {TagTrees} and {TagClouds} 
+		/// must be replaced with the HTML for the tag trees and tag clouds or an empty string if not required.
+		/// </summary>
+		private static string LeftPaneHtmlTmpl
+		{
+			get
+			{
+				return @"<div id='{{:Settings.ClientId}}_lptv' class='gsp_lpalbumtree'></div>
+{{if App.LatestUrl}}<p class='gsp_lplatest'><a href='{{:App.LatestUrl}}' class='jstree-anchor'><i class='jstree-icon'></i>{{:Resource.LpRecent}}</a></p>{{/if}}
+{{if App.TopRatedUrl}}<p class='gsp_lptoprated'><a href='{{:App.TopRatedUrl}}' class='jstree-anchor'><i class='jstree-icon'></i>{{:Resource.LpTopRated}}</a></p>{{/if}}
+{TagTrees}
+{TagClouds}";
+			}
+		}
+
+		/// <summary>
+		/// Gets the default JavaScript template for the left pane UI template. The replacement tokens {TagTrees} and {TagClouds} 
+		/// must be replaced with the JavaScript for the tag trees and tag clouds or an empty string if not required.
+		/// </summary>
+		private static string LeftPaneJsTmpl
+		{
+			get
+			{
+				return @"// Render the left pane if it exists
+var $lp = $('#{{:Settings.LeftPaneClientId}}');
+
+if ($lp.length > 0) {
+ $lp.html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));
+
+ var options = {
+  albumIdsToSelect: [{{:Album.Id}}],
+  navigateUrl: '{{:App.CurrentPageUrl}}'
+ };
+
+ // Call the gspTreeView plug-in, which adds an album treeview
+ $('#{{:Settings.ClientId}}_lptv').gspTreeView(window.{{:Settings.ClientId}}.gspAlbumTreeData, options);
+}
+{TagTrees}
+{TagClouds}";
+			}
+		}
+
+		/// <summary>
 		/// Gets the default HTML template for the right pane UI template. The replacement tokens {PayPalAddToCartWidget} and {FacebookLikeWidget} 
 		/// must be replaced with the HTML for the PayPal 'add to cart' widget and the Facebook Like widget or an empty string if not required.
 		/// </summary>
@@ -238,11 +286,11 @@ $('#{{:Settings.RightPaneClientId}}').gspMeta({{:Settings.ClientId}}.gspData, op
 			{
 				return @"
 (function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = '//connect.facebook.net/en_US/all.js#xfbml=1';
-  fjs.parentNode.insertBefore(js, fjs);
+	var js, fjs = d.getElementsByTagName(s)[0];
+	if (d.getElementById(id)) return;
+	js = d.createElement(s); js.id = id;
+	js.src = '//connect.facebook.net/en_US/all.js#xfbml=1';
+	fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));
 
 $('#{{:Settings.MediaClientId}}').on('next.{{:Settings.ClientId}} previous.{{:Settings.ClientId}}', function() {
@@ -280,6 +328,8 @@ $('#{{:Settings.MediaClientId}}').on('next.{{:Settings.ClientId}} previous.{{:Se
 		/// </summary>
 		public static void InsertEnterpriseTemplates()
 		{
+			InsertLeftPaneEnterpriseTemplates();
+
 			InsertFacebookTemplates();
 
 			InsertPayPalTemplates();
@@ -292,28 +342,28 @@ $('#{{:Settings.MediaClientId}}').on('next.{{:Settings.ClientId}} previous.{{:Se
 		private static void InsertAppSettings(GalleryDb ctx)
 		{
 			var appSettings = new[]
-				                  {
-					                  new AppSettingDto {SettingName = "Skin", SettingValue = "dark"},
-					                  new AppSettingDto {SettingName = "MediaObjectDownloadBufferSize", SettingValue = "32768"},
-					                  new AppSettingDto {SettingName = "EncryptMediaObjectUrlOnClient", SettingValue = "False"},
-					                  new AppSettingDto {SettingName = "EncryptionKey", SettingValue = "mNU-h7:5f_)3=c%@^}#U9Tn*"},
-					                  new AppSettingDto {SettingName = "JQueryScriptPath", SettingValue = "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"},
-					                  new AppSettingDto {SettingName = "JQueryMigrateScriptPath", SettingValue = "//code.jquery.com/jquery-migrate-1.2.1.js"},
-					                  new AppSettingDto {SettingName = "JQueryUiScriptPath", SettingValue = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"},
-					                  new AppSettingDto {SettingName = "MembershipProviderName", SettingValue = ""},
-					                  new AppSettingDto {SettingName = "RoleProviderName", SettingValue = ""},
-					                  new AppSettingDto {SettingName = "ProductKey", SettingValue = ""},
-					                  new AppSettingDto {SettingName = "EnableCache", SettingValue = "True"},
-					                  new AppSettingDto {SettingName = "AllowGalleryAdminToManageUsersAndRoles", SettingValue = "True"},
-					                  new AppSettingDto {SettingName = "AllowGalleryAdminToViewAllUsersAndRoles", SettingValue = "True"},
-					                  new AppSettingDto {SettingName = "MaxNumberErrorItems", SettingValue = "200"},
-					                  new AppSettingDto {SettingName = "EmailFromName", SettingValue = "Gallery Server Pro"},
-					                  new AppSettingDto {SettingName = "EmailFromAddress", SettingValue = "webmaster@yourisp.com"},
-					                  new AppSettingDto {SettingName = "SmtpServer", SettingValue = ""},
-					                  new AppSettingDto {SettingName = "SmtpServerPort", SettingValue = ""},
-					                  new AppSettingDto {SettingName = "SendEmailUsingSsl", SettingValue = "False"},
-					                  new AppSettingDto {SettingName = "DataSchemaVersion", SettingValue = GalleryDataSchemaVersionEnumHelper.ConvertGalleryDataSchemaVersionToString(GalleryDb.DataSchemaVersion)}
-				                  };
+													{
+														new AppSettingDto {SettingName = "Skin", SettingValue = "dark"},
+														new AppSettingDto {SettingName = "MediaObjectDownloadBufferSize", SettingValue = "32768"},
+														new AppSettingDto {SettingName = "EncryptMediaObjectUrlOnClient", SettingValue = "False"},
+														new AppSettingDto {SettingName = "EncryptionKey", SettingValue = "mNU-h7:5f_)3=c%@^}#U9Tn*"},
+														new AppSettingDto {SettingName = "JQueryScriptPath", SettingValue = "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"},
+														new AppSettingDto {SettingName = "JQueryMigrateScriptPath", SettingValue = "//code.jquery.com/jquery-migrate-1.2.1.js"},
+														new AppSettingDto {SettingName = "JQueryUiScriptPath", SettingValue = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"},
+														new AppSettingDto {SettingName = "MembershipProviderName", SettingValue = ""},
+														new AppSettingDto {SettingName = "RoleProviderName", SettingValue = ""},
+														new AppSettingDto {SettingName = "ProductKey", SettingValue = ""},
+														new AppSettingDto {SettingName = "EnableCache", SettingValue = "True"},
+														new AppSettingDto {SettingName = "AllowGalleryAdminToManageUsersAndRoles", SettingValue = "True"},
+														new AppSettingDto {SettingName = "AllowGalleryAdminToViewAllUsersAndRoles", SettingValue = "True"},
+														new AppSettingDto {SettingName = "MaxNumberErrorItems", SettingValue = "200"},
+														new AppSettingDto {SettingName = "EmailFromName", SettingValue = "Gallery Server Pro"},
+														new AppSettingDto {SettingName = "EmailFromAddress", SettingValue = "webmaster@yourisp.com"},
+														new AppSettingDto {SettingName = "SmtpServer", SettingValue = ""},
+														new AppSettingDto {SettingName = "SmtpServerPort", SettingValue = ""},
+														new AppSettingDto {SettingName = "SendEmailUsingSsl", SettingValue = "False"},
+														new AppSettingDto {SettingName = "DataSchemaVersion", SettingValue = GalleryDataSchemaVersionEnumHelper.ConvertGalleryDataSchemaVersionToString(GalleryDb.DataSchemaVersion)}
+													};
 
 			ctx.AppSettings.AddOrUpdate(a => a.SettingName, appSettings);
 
@@ -443,7 +493,7 @@ $('#{{:Settings.MediaClientId}}').on('next.{{:Settings.ClientId}} previous.{{:Se
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "DiscardOriginalImageDuringImport", SettingValue = "False" });
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "ApplyWatermark", SettingValue = "False" });
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "ApplyWatermarkToThumbnails", SettingValue = "False" });
-				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "WatermarkText", SettingValue = "Copyright 2013, Your Company Name, All Rights Reserved" });
+				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "WatermarkText", SettingValue = "Copyright 2014, Your Company Name, All Rights Reserved" });
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "WatermarkTextFontName", SettingValue = "Verdana" });
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "WatermarkTextFontSize", SettingValue = "13" });
 				ctx.GallerySettings.AddOrUpdate(a => new { a.FKGalleryId, a.SettingName }, new GallerySettingDto { FKGalleryId = galleryDto.GalleryId, SettingName = "WatermarkTextWidthPercent", SettingValue = "50" });
@@ -499,7 +549,7 @@ $('#{{:Settings.MediaClientId}}').on('next.{{:Settings.ClientId}} previous.{{:Se
 
 			if (rootAlbumWithMissingTitle != null)
 			{
-				ctx.Metadatas.Add(new MetadataDto { MetaName = MetadataItemName.Title, FKAlbumId = rootAlbumWithMissingTitle.AlbumId, Value = "All albums" });
+				ctx.Metadatas.Add(new MetadataDto { MetaName = MetadataItemName.Title, FKAlbumId = rootAlbumWithMissingTitle.AlbumId, Value = "ALL ALBUMS" });
 			}
 
 			var rootAlbumWithMissingCaption = ctx.Albums.FirstOrDefault(a => a.FKAlbumParentId == null && a.Metadata.All(md => md.MetaName != MetadataItemName.Caption));
@@ -704,28 +754,28 @@ else
 			const string silverlightHtmlTmpl = "<div id=\'{UniqueId}_mp1p\'></div>";
 
 			const string silverlightScriptTmpl = @"var loadScripts=function(files, callback) {
-  $.getScript(files.shift(), files.length ? function() { loadScripts(files, callback); } : callback);
+	$.getScript(files.shift(), files.length ? function() { loadScripts(files, callback); } : callback);
 };
-    
+		
 var runSilverlight = function () {
-  Sys.UI.Silverlight.Control.createObject('{UniqueId}_mp1p','<object type=\'application/x-silverlight\' id=\'{UniqueId}_mp1\' style=\'height:{Height}px;width:{Width}px;\'><param name=\'Windowless\' value=\'True\' /><a href=\'http://go2.microsoft.com/fwlink/?LinkID=114576&amp;v=1.0\'><img src=\'http://go2.microsoft.com/fwlink/?LinkID=108181\' alt=\'Get Microsoft Silverlight\' style=\'border-width:0;\' /></a></object>');
-  Sys.Application.add_init(function() {
-    $create(Sys.UI.Silverlight.MediaPlayer, {
-      mediaSource: '{MediaObjectUrl}',
-      scaleMode: 1,
-      source: '{GalleryPath}/xaml/mediaplayer/{{0}}',
-      autoPlay: {AutoStartMediaObjectText}
-    }, null, null, document.getElementById('{UniqueId}_mp1p'));
-  });
-  Sys.Application.initialize();
+	Sys.UI.Silverlight.Control.createObject('{UniqueId}_mp1p','<object type=\'application/x-silverlight\' id=\'{UniqueId}_mp1\' style=\'height:{Height}px;width:{Width}px;\'><param name=\'Windowless\' value=\'True\' /><a href=\'http://go2.microsoft.com/fwlink/?LinkID=114576&amp;v=1.0\'><img src=\'http://go2.microsoft.com/fwlink/?LinkID=108181\' alt=\'Get Microsoft Silverlight\' style=\'border-width:0;\' /></a></object>');
+	Sys.Application.add_init(function() {
+		$create(Sys.UI.Silverlight.MediaPlayer, {
+			mediaSource: '{MediaObjectUrl}',
+			scaleMode: 1,
+			source: '{GalleryPath}/xaml/mediaplayer/{{0}}',
+			autoPlay: {AutoStartMediaObjectText}
+		}, null, null, document.getElementById('{UniqueId}_mp1p'));
+	});
+	Sys.Application.initialize();
 };
-    
+		
 window.Gsp.msAjaxComponentId='{UniqueId}_mp1';
 if ((typeof Sys === 'undefined') || !Sys.UI.Silverlight) {
-  var scripts = ['{GalleryPath}/script/MicrosoftAjax.js', '{GalleryPath}/script/SilverlightControl.js', '{GalleryPath}/script/SilverlightMedia.js'];
-  loadScripts(scripts, runSilverlight);
+	var scripts = ['{GalleryPath}/script/MicrosoftAjax.js', '{GalleryPath}/script/SilverlightControl.js', '{GalleryPath}/script/SilverlightMedia.js'];
+	loadScripts(scripts, runSilverlight);
 } else {
-  runSilverlight();
+	runSilverlight();
 }";
 
 			const string pdfScriptTmplIE = @"// IE and Safari render Adobe Reader iframes on top of jQuery UI dialogs, so add event handler to hide frame while dialog is visible
@@ -775,8 +825,8 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/m4v", BrowserId = "opera", HtmlTemplate = flashHtmlTmpl, ScriptTemplate = flashScriptTmpl });
 
 			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/x-ms-asf", BrowserId = "default", HtmlTemplate = silverlightHtmlTmpl, ScriptTemplate = silverlightScriptTmpl.Replace("{{0}}", silverlightVideoSkin) });
-			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/divx", BrowserId = "default", HtmlTemplate = "<object type='{MimeType}' data='{HostUrl}{MediaObjectUrl}' style='width:{Width}px;height:{Height}px;'><param name='src' value='{HostUrl}{MediaObjectUrl}' /><param name='mode' value='full' /><param name='minVersion' value='1.0.0' /><param name='allowContextMenu' value='true' /><param name='autoPlay' value='{AutoStartMediaObjectText}' /><param name='loop' value='false' /><param name='bannerEnabled' value='false' /><param name='bufferingMode' value='auto' /><param name='previewMessage' value='Click to start video' /><param name='previewMessageFontSize' value='24' /><param name='movieTitle' value='{TitleNoHtml}' /></object>", ScriptTemplate = "" });
-			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/divx", BrowserId = "ie", HtmlTemplate = "<object classid='clsid:67DABFBF-D0AB-41fa-9C46-CC0F21721616' codebase='http://go.divx.com/plugin/DivXBrowserPlugin.cab' style='width:{Width}px;height:{Height}px;'><param name='src' value='{HostUrl}{MediaObjectUrl}' /><param name='mode' value='full' /><param name='minVersion' value='1.0.0' /><param name='allowContextMenu' value='true' /><param name='autoPlay' value='{AutoStartMediaObjectText}' /><param name='loop' value='false' /><param name='bannerEnabled' value='false' /><param name='bufferingMode' value='auto' /><param name='previewMessage' value='Click to start video' /><param name='previewMessageFontSize' value='24' /><param name='movieTitle' value='{TitleNoHtml}' /></object>", ScriptTemplate = "" });
+			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/divx", BrowserId = "default", HtmlTemplate = "<object type='{MimeType}' data='{MediaObjectUrl}' style='width:{Width}px;height:{Height}px;'><param name='src' value='{MediaObjectUrl}' /><param name='mode' value='full' /><param name='minVersion' value='1.0.0' /><param name='allowContextMenu' value='true' /><param name='autoPlay' value='{AutoStartMediaObjectText}' /><param name='loop' value='false' /><param name='bannerEnabled' value='false' /><param name='bufferingMode' value='auto' /><param name='previewMessage' value='Click to start video' /><param name='previewMessageFontSize' value='24' /><param name='movieTitle' value='{TitleNoHtml}' /></object>", ScriptTemplate = "" });
+			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/divx", BrowserId = "ie", HtmlTemplate = "<object classid='clsid:67DABFBF-D0AB-41fa-9C46-CC0F21721616' codebase='http://go.divx.com/plugin/DivXBrowserPlugin.cab' style='width:{Width}px;height:{Height}px;'><param name='src' value='{MediaObjectUrl}' /><param name='mode' value='full' /><param name='minVersion' value='1.0.0' /><param name='allowContextMenu' value='true' /><param name='autoPlay' value='{AutoStartMediaObjectText}' /><param name='loop' value='false' /><param name='bannerEnabled' value='false' /><param name='bufferingMode' value='auto' /><param name='previewMessage' value='Click to start video' /><param name='previewMessageFontSize' value='24' /><param name='movieTitle' value='{TitleNoHtml}' /></object>", ScriptTemplate = "" });
 			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "video/webm", BrowserId = "default", HtmlTemplate = "<video src='{MediaObjectUrl}' controls autobuffer preload {AutoPlay}><p>Cannot play: Your browser does not support the <code>video</code> element or the codec of this file. Try another browser or download the file.</p></video>", ScriptTemplate = "" });
 			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "application/x-shockwave-flash", BrowserId = "default", HtmlTemplate = "<object type='{MimeType}' data='{MediaObjectUrl}' style='width:{Width}px;height:{Height}px;' id='flash_plugin' standby='loading movie...'><param name='movie' value='{MediaObjectUrl}' /><param name='allowScriptAccess' value='sameDomain' /><param name='quality' value='best' /><param name='wmode' value='opaque' /><param name='scale' value='default' /><param name='bgcolor' value='#FFFFFF' /><param name='salign' value='TL' /><param name='FlashVars' value='playerMode=embedded' /><p><strong>Cannot play Flash content</strong> Your browser does not have the Flash plugin or it is disabled. To view the content, install the Macromedia Flash plugin or, if it is already installed, enable it.</p></object>", ScriptTemplate = "" });
 			ctx.MediaTemplates.AddOrUpdate(a => new { a.MimeType, a.BrowserId }, new MediaTemplateDto { MimeType = "application/x-shockwave-flash", BrowserId = "ie", HtmlTemplate = "<object type='{MimeType}' classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0&quot; id='flash_activex' standby='loading movie...' style='width:{Width}px;height:{Height}px;'><param name='movie' value='{MediaObjectUrl}' /><param name='quality' value='high' /><param name='wmode' value='opaque' /><param name='bgcolor' value='#FFFFFF' /><p><strong>Cannot play Flash content</strong> Your browser does not have the Flash plugin or it is disabled. To view the content, install the Macromedia Flash plugin or, if it is already installed, enable it.</p></object>", ScriptTemplate = "" });
@@ -803,7 +853,7 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 			ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
 																																											{
 																																												TemplateType = UiTemplateType.Album,
-																																												Name = "Default",
+																																												Name = DefaultTmplName,
 																																												FKGalleryId = galleryId,
 																																												Description = "",
 																																												HtmlTemplate = @"<div class='gsp_abm_sum'>
@@ -831,6 +881,7 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 	 </span>
 	 <ul class='gsp_abm_sum_sbi'>
 		<li class='gsp_abm_sum_sbi_hdr'>{{:Resource.AbmSortbyTt}}</li>
+{{if Album.VirtualType == 1 && Album.Permissions.EditAlbum}}<li><a href='#' data-id='-2147483648'>{{:Resource.AbmSortbyCustom}}</a></li>{{/if}}
 		<li><a href='#' data-id='8'>{{:Resource.AbmSortbyDatePictureTaken}}</a></li>
 		<li><a href='#' data-id='111'>{{:Resource.AbmSortbyDateAdded}}</a></li>
 		<li><a href='#' data-id='26'>{{:Resource.AbmSortbyRating}}</a></li>
@@ -845,10 +896,15 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 		<img src='{{:App.SkinPath}}/images/lock-{{if Album.IsPrivate || !Settings.AllowAnonBrowsing}}active-{{/if}}s.png' title='{{if !Settings.AllowAnonBrowsing}}{{:Resource.AbmAnonDisabledTt}}{{else}}{{if Album.IsPrivate}}{{:Resource.AbmIsPvtTt}}{{else}}{{:Resource.AbmNotPvtTt}}{{/if}}{{/if}}' alt=''>
 	 </a>
 {{/if}}
-{{if Album.Permissions.AdministerGallery}}
+{{if Album.VirtualType == 1 && Album.Permissions.AdministerGallery}}
 	<a class='gsp_abm_sum_ownr_trigger gsp_abm_sum_btn' href='#'>
 		<img src='{{:App.SkinPath}}/images/user-s.png' title='{{:Resource.AbmOwnrTt}}' alt=''>
 	 </a>
+{{/if}}
+{{if Album.RssUrl}}
+	<a class='gsp_abm_sum_btn' href='{{:Album.RssUrl}}'>
+		<img src='{{:App.SkinPath}}/images/rss-s.png' title='{{:Resource.AbmRssTt}}' alt=''>
+	</a>
 {{/if}}
 	<span class='gsp_abm_sum_col1_row1_hdr'>{{:Resource.AbmPfx}}</span>
 	<span class='gsp_abm_sum_col1_row1_dtl'>{{:Album.Title}}</span>
@@ -860,19 +916,19 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 </div>
 
 {{if Album.GalleryItems.length == 0}}
- <p class='gsp_abm_noobj'>{{:Resource.AbmNoObj}} {{if Album.Permissions.AddMediaObject}}<a href='{{: ~getAddUrl(#data) }}'>{{:Resource.AbmAddObj}}</a>{{/if}}</p>
+ <p class='gsp_abm_noobj'>{{:Resource.AbmNoObj}} {{if Album.VirtualType == 1 && Album.Permissions.AddMediaObject}}<a href='{{: ~getAddUrl(#data) }}'>{{:Resource.AbmAddObj}}</a>{{/if}}</p>
 {{/if}}
 
-<div class='gsp_floatcontainer'>
+<ul class='gsp_floatcontainer gsp_abm_thmbs'>
  {{for Album.GalleryItems}}
- <div class='thmb{{if IsAlbum}} album{{/if}}' data-id='{{:Id}}' data-it='{{:ItemType}}'>
+ <li class='thmb{{if IsAlbum}} album{{/if}}' data-id='{{:Id}}' data-it='{{:ItemType}}' style='width:{{:Views[ViewIndex].Width + 40}}px;'>
 	<a class='gsp_thmbLink' href='{{: ~getGalleryItemUrl(#data, !IsAlbum) }}'>
 	 <img class='gsp_thmb_img' style='width:{{:Views[ViewIndex].Width}}px;height:{{:Views[ViewIndex].Height}}px;' src='{{:Views[ViewIndex].Url}}'>
 	</a>
-	<p class='gsp_go_t' style='width:{{:Views[ViewIndex].Width + 40}}px;' title='{{stripHtml:Title}}'>{{stripHtmlAndTruncate:Title}}</p>
- </div>
+	<p class='gsp_go_t' title='{{stripHtml:Title}}'>{{stripHtmlAndTruncate:Title}}</p>
+ </li>
  {{/for}}
-</div>
+</ul>
 
 <div class='gsp_abm_sum_share_dlg gsp_dlg'>
  <p class='gsp_abm_sum_share_dlg_t'>{{:Resource.AbmShareAlbum}}</p>
@@ -897,7 +953,7 @@ $('#{{:Settings.ThumbnailClientId}}').gspThumbnails('{{:Settings.ThumbnailTmplNa
 			ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
 																																											{
 																																												TemplateType = UiTemplateType.MediaObject,
-																																												Name = "Default",
+																																												Name = DefaultTmplName,
 																																												FKGalleryId = galleryId,
 																																												Description = "",
 																																												HtmlTemplate = GetMediaObjectHtmlTmpl(false),
@@ -907,7 +963,7 @@ $('#{{:Settings.ThumbnailClientId}}').gspThumbnails('{{:Settings.ThumbnailTmplNa
 			ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
 																																											{
 																																												TemplateType = UiTemplateType.Header,
-																																												Name = "Default",
+																																												Name = DefaultTmplName,
 																																												FKGalleryId = galleryId,
 																																												Description = "",
 																																												HtmlTemplate = GetHeaderHtmlTmpl(false),
@@ -917,31 +973,17 @@ $('#{{:Settings.ThumbnailClientId}}').gspThumbnails('{{:Settings.ThumbnailTmplNa
 			ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
 																																											{
 																																												TemplateType = UiTemplateType.LeftPane,
-																																												Name = "Default",
+																																												Name = DefaultTmplName,
 																																												FKGalleryId = galleryId,
 																																												Description = "",
-																																												HtmlTemplate = "<div id='{{:Settings.ClientId}}_lptv'></div>",
-																																												ScriptTemplate = @"// Render the left pane, but not for touchscreens UNLESS the left pane is the only visible pane
-var isTouch = window.Gsp.isTouchScreen();
-var renderLeftPane = !isTouch  || (isTouch && ($('.gsp_tb_s_CenterPane:visible, .gsp_tb_s_RightPane:visible').length == 0));
-
-if (renderLeftPane ) {
- $('#{{:Settings.LeftPaneClientId}}').html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));
-
- var options = {
-  albumIdsToSelect: [{{:Album.Id}}],
-  navigateUrl: '{{:App.CurrentPageUrl}}'
- };
-
- // Call the gspTreeView plug-in, which adds an album treeview
- $('#{{:Settings.ClientId}}_lptv').gspTreeView(window.{{:Settings.ClientId}}.gspAlbumTreeData, options);
-}"
+																																												HtmlTemplate = GetLeftPaneHtmlTmpl(false, false),
+																																												ScriptTemplate = GetLeftPaneJsTmpl(false, false)
 																																											});
 
 			ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
 																																											{
 																																												TemplateType = UiTemplateType.RightPane,
-																																												Name = "Default",
+																																												Name = DefaultTmplName,
 																																												FKGalleryId = galleryId,
 																																												Description = "",
 																																												HtmlTemplate = GetRightPaneHtmlTmpl(false, false),
@@ -1004,6 +1046,39 @@ if (renderLeftPane ) {
 				}
 
 				throw new DbEntityValidationException("Entity Validation Failed - errors follow:\n" + sb.ToString(), ex); //addthe original exception as the innerException
+			}
+		}
+
+		/// <summary>
+		/// Adds or updates the left pane templates available to Enterprise users.
+		/// </summary>
+		private static void InsertLeftPaneEnterpriseTemplates()
+		{
+			using (var ctx = new GalleryDb())
+			{
+				var galleryId = ctx.Galleries.Single(g => g.IsTemplate).GalleryId;
+
+				ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
+					{
+						TemplateType = UiTemplateType.LeftPane,
+						Name = "Default with Tag and People Trees",
+						FKGalleryId = galleryId,
+						Description = "",
+						HtmlTemplate = GetLeftPaneHtmlTmpl(true, false),
+						ScriptTemplate = GetLeftPaneJsTmpl(true, false)
+					});
+
+				ctx.UiTemplates.AddOrUpdate(a => new { a.TemplateType, a.FKGalleryId, a.Name }, new UiTemplateDto
+					{
+						TemplateType = UiTemplateType.LeftPane,
+						Name = "Default with Tag and People Clouds",
+						FKGalleryId = galleryId,
+						Description = "",
+						HtmlTemplate = GetLeftPaneHtmlTmpl(false, true),
+						ScriptTemplate = GetLeftPaneJsTmpl(false, true)
+					});
+
+				ctx.SaveChanges();
 			}
 		}
 
@@ -1084,7 +1159,7 @@ if (renderLeftPane ) {
 			// their own PayPal HTML snippet.
 			const string payPalCart = @"<input type='hidden' name='cmd' value='_s-xclick'>
 <input type='hidden' name='encrypted' value='-----BEGIN PKCS7-----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-----END PKCS7-----
-  '>
+	'>
 <input id='{{:Settings.ClientId}}_viewCart' type='image' src='https://www.paypalobjects.com/en_US/i/btn/btn_viewcart_LG.gif' border='0' name='btnPayPal' alt='PayPal - The safer, easier way to pay online!' style='float:right;margin-top:5px'>
 <img alt='' border='0' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif' width='1' height='1'>";
 
@@ -1133,10 +1208,91 @@ $('#{{:Settings.ClientId}}_viewCart').click(function() {
 		}
 
 		/// <summary>
+		/// Gets the default HTML template for the left pane UI template, optionally including HTML to support the tag trees and
+		/// tag clouds.
+		/// </summary>
+		/// <param name="includeTagTrees">if set to <c>true</c> HTML to support the tag trees is included.</param>
+		/// <param name="includeTagClouds">if set to <c>true</c> HTML to support the tag clouds is included.</param>
+		/// <returns>System.String.</returns>
+		private static string GetLeftPaneHtmlTmpl(bool includeTagTrees, bool includeTagClouds)
+		{
+			const string tagTrees = @"
+<div id='{{:Settings.ClientId}}_lptagtv' class='gsp_lptagtv gsp_wait'></div>
+<div id='{{:Settings.ClientId}}_lppeopletv' class='gsp_lppeopletv gsp_wait'></div>";
+
+			const string tagClouds = @"
+<p class='gsp_msgfriendly gsp_addtopmargin10 gsp_addleftmargin4'>{{:Resource.LpTags}}</p>
+<div id='{{:Settings.ClientId}}_lptagcloud' class='gsp_lptagcloud gsp_wait'></div>
+
+<p class='gsp_msgfriendly gsp_addtopmargin10 gsp_addleftmargin4'>{{:Resource.LpPeople}}</p>
+<div id='{{:Settings.ClientId}}_lppeoplecloud' class='gsp_lppeoplecloud gsp_wait'></div>";
+
+			return LeftPaneHtmlTmpl
+				.Replace("{TagTrees}", (includeTagTrees ? tagTrees : String.Empty))
+				.Replace("{TagClouds}", (includeTagClouds ? tagClouds : String.Empty));
+		}
+
+		/// <summary>
+		/// Gets the default JavaScript template for the left pane UI template, optionally including script to support the tag trees and
+		/// tag clouds.
+		/// </summary>
+		/// <param name="includeTagTrees">if set to <c>true</c> JavaScript to support the tag trees is included.</param>
+		/// <param name="includeTagClouds">if set to <c>true</c> JavaScript to support the tag clouds is included.</param>
+		/// <returns>System.String.</returns>
+		private static string GetLeftPaneJsTmpl(bool includeTagTrees, bool includeTagClouds)
+		{
+			const string tagTrees = @"
+var appUrl = window.{{:Settings.ClientId}}.gspData.App.AppUrl;
+var galleryId = window.{{:Settings.ClientId}}.gspData.Album.GalleryId;
+
+var tagTreeOptions = {
+ clientId: '{{:Settings.ClientId}}',
+ albumIdsToSelect : [window.Gsp.GetQSParm('tag')],
+ treeDataUrl: appUrl  + '/api/meta/gettagtreeasjson?galleryId=' + galleryId + '&top=10&sortBy=count&sortAscending=false&expanded=false'
+};
+
+var peopleTreeOptions = {
+ clientId: '{{:Settings.ClientId}}',
+ albumIdsToSelect : [window.Gsp.GetQSParm('people')],
+ treeDataUrl: appUrl + '/api/meta/getpeopletreeasjson?galleryId=' + galleryId + '&top=10&sortBy=count&sortAscending=false&expanded=false'
+};
+
+$('#{{:Settings.ClientId}}_lptagtv').gspTreeView(null, tagTreeOptions);
+$('#{{:Settings.ClientId}}_lppeopletv').gspTreeView(null, peopleTreeOptions );
+
+$('#{{:Settings.ClientId}}_lptagtv,#{{:Settings.ClientId}}_lppeopletv').on('select_node.jstree', function (e, data) { 
+ data.instance.toggle_node(data.node); 
+})";
+
+			const string tagClouds = @"
+var appUrl = window.{{:Settings.ClientId}}.gspData.App.AppUrl;
+var galleryId = window.{{:Settings.ClientId}}.gspData.Album.GalleryId;
+
+var tagCloudOptions = {
+ clientId: '{{:Settings.ClientId}}',
+ tagCloudType: 'tag',
+ tagCloudUrl: appUrl  + '/api/meta/tags?q=&galleryId=' + galleryId + '&top=20&sortBy=count&sortAscending=false'
+}
+
+var peopleCloudOptions = {
+ clientId: '{{:Settings.ClientId}}',
+ tagCloudType: 'people',
+ tagCloudUrl: appUrl  + '/api/meta/people?q=&galleryId=' + galleryId + '&top=10&sortBy=count&sortAscending=false'
+}
+
+$('#{{:Settings.ClientId}}_lptagcloud').gspTagCloud(null, tagCloudOptions);
+$('#{{:Settings.ClientId}}_lppeoplecloud').gspTagCloud(null, peopleCloudOptions );";
+
+			return LeftPaneJsTmpl
+				.Replace("{TagTrees}", (includeTagTrees ? tagTrees : String.Empty))
+				.Replace("{TagClouds}", (includeTagClouds ? tagClouds : String.Empty));
+		}
+
+		/// <summary>
 		/// Gets the default HTML template for the right pane UI template, optionally including HTML to support the PayPal 'add to cart' and
 		/// Facebook Like widgets.
 		/// </summary>
-		/// <param name="includePayPalAddToCartWidget">if set to <c>true</c> HTML to support the PayPal 'add to cart' widget is included.<</param>
+		/// <param name="includePayPalAddToCartWidget">if set to <c>true</c> HTML to support the PayPal 'add to cart' widget is included.</param>
 		/// <param name="includeFacebookLikeWidget">if set to <c>true</c> HTML to support the Facebook Like widget is included.</param>
 		/// <returns>System.String.</returns>
 		private static string GetRightPaneHtmlTmpl(bool includePayPalAddToCartWidget, bool includeFacebookLikeWidget)
@@ -1165,7 +1321,7 @@ $('#{{:Settings.ClientId}}_viewCart').click(function() {
 		/// Gets the default JavaScript template for the right pane UI template, optionally including script to support the PayPal 'add to cart' and
 		/// Facebook Like widgets.
 		/// </summary>
-		/// <param name="includePayPalAddToCartJs">if set to <c>true</c> JavaScript to support the PayPal 'add to cart' widget is included.<</param>
+		/// <param name="includePayPalAddToCartJs">if set to <c>true</c> JavaScript to support the PayPal 'add to cart' widget is included.</param>
 		/// <param name="includeFacebookJs">if set to <c>true</c> JavaScript to support the Facebook API is included.</param>
 		/// <returns>System.String.</returns>
 		private static string GetRightPaneJsTmpl(bool includePayPalAddToCartJs, bool includeFacebookJs)
@@ -1173,10 +1329,10 @@ $('#{{:Settings.ClientId}}_viewCart').click(function() {
 			const string payPalAddToCartJs = @"
 var bindAddToCartEvent = function() {
  $('#{{:Settings.ClientId}}_addToCart').click(function() {
-  var f = $('form')[0];
-  f.action = 'https://www.paypal.com/cgi-bin/webscr';
-  f.submit();
-  return false;
+	var f = $('form')[0];
+	f.action = 'https://www.paypal.com/cgi-bin/webscr';
+	f.submit();
+	return false;
  });
 };
 

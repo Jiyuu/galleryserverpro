@@ -6,67 +6,67 @@ using GalleryServerPro.Business.Metadata;
 namespace GalleryServerPro.Data
 {
 	[Table("Metadata", Schema = "gsp")]
-  [System.Diagnostics.DebuggerDisplay("Meta {MetaName} = {Value}")]
-  public class MetadataDto
-  {
-    [Key]
-    public virtual int MetadataId
-    {
-      get;
-      set;
-    }
+	[System.Diagnostics.DebuggerDisplay("Meta {MetaName} = {Value}")]
+	public class MetadataDto
+	{
+		[Key]
+		public virtual int MetadataId
+		{
+			get;
+			set;
+		}
 
-    [Required]
+		[Required]
 		public virtual MetadataItemName MetaName
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
 		public virtual int? FKMediaObjectId
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
 		public virtual int? FKAlbumId
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
-    [ForeignKey("FKMediaObjectId")]
+		[ForeignKey("FKMediaObjectId")]
 		public virtual MediaObjectDto MediaObject
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
-    [ForeignKey("FKAlbumId")]
+		[ForeignKey("FKAlbumId")]
 		public virtual AlbumDto Album
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
-		[MaxLength(1000)]
+		[MaxLength]
 		public virtual string RawValue
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
-    [Required(AllowEmptyStrings = true), MaxLength]
+		[Required(AllowEmptyStrings = true), MaxLength]
 		public virtual string Value
-    {
-      get;
-      set;
-    }
+		{
+			get;
+			set;
+		}
 
 		public virtual ICollection<MetadataTagDto> MetadataTags
-    {
-      get;
-      set;
-    }
-  }
+		{
+			get;
+			set;
+		}
+	}
 }

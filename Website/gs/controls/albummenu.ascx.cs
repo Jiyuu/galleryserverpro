@@ -130,7 +130,7 @@ namespace GalleryServerPro.Web.Controls
 				{
 					menuString = menuString.Insert(0, String.Format(CultureInfo.CurrentCulture, " {0} <a href=\"{1}\">{2}</a>", dividerText, AlbumController.GetUrl(album), album.Title));
 
-					var searchVirtualAlbumTypes = new[] { VirtualAlbumType.Tag, VirtualAlbumType.People, VirtualAlbumType.Search, VirtualAlbumType.TitleOrCaption };
+					var searchVirtualAlbumTypes = new[] { VirtualAlbumType.Tag, VirtualAlbumType.People, VirtualAlbumType.Search, VirtualAlbumType.TitleOrCaption, VirtualAlbumType.MostRecentlyAdded, VirtualAlbumType.Rated };
 					var isAlbumSearchResult = searchVirtualAlbumTypes.Contains(album.VirtualAlbumType);
 
 					if (isAlbumSearchResult)

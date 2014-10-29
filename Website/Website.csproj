@@ -54,54 +54,50 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
       <Private>True</Private>
-      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServerCompact">
+      <HintPath>..\packages\EntityFramework.SqlServerCompact.6.1.0\lib\net45\EntityFramework.SqlServerCompact.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SqlServerCe.Entity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\EntityFramework.SqlServerCompact.4.3.6\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Extensions">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.13\lib\net45\System.Net.Http.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.30506.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.Primitives">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.13\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+    <Reference Include="System.Net.Http.Formatting, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.1.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.30506.0\lib\net40\System.Web.Http.dll</HintPath>
+    <Reference Include="System.Web.Http, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.1.2\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.30506.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
+    <Reference Include="System.Web.Http.WebHost, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.1.2\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Providers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.1.2\lib\net40\System.Web.Providers.dll</HintPath>
+    <Reference Include="System.Web.Providers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.2.0.0\lib\net40\System.Web.Providers.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
@@ -119,8 +115,8 @@
     <Content Include="gs\script\html5shiv.min.js" />
     <Content Include="gs\script\jquery-migrate.min.js" />
     <Content Include="gs\script\MicrosoftAjax.js" />
-    <Content Include="gs\script\plupload\plupload.flash.swf" />
-    <Content Include="gs\script\plupload\plupload.silverlight.xap" />
+    <Content Include="gs\script\plupload\jquery.ui.plupload.min.js" />
+    <Content Include="gs\script\plupload\plupload.full.min.js" />
     <Content Include="gs\skins\dark\images\arrow-right-open-s-o.png" />
     <Content Include="gs\skins\dark\images\delete-red-s.png" />
     <Content Include="gs\skins\dark\images\down-arrow-s.png" />
@@ -133,7 +129,6 @@
     <Content Include="gs\controls\albumtreeview.ascx" />
     <Content Include="gs\controls\mediaview.ascx" />
     <Content Include="gs\script\debug\grid.js" />
-    <Content Include="gs\script\plupload\jquery.plupload.queue.js" />
     <Content Include="gs\skins\dark\images\add-objects-s-o.png" />
     <Content Include="gs\skins\dark\images\check-s.png" />
     <Content Include="gs\skins\dark\images\collapse-s-o.png" />
@@ -154,6 +149,9 @@
     <Content Include="gs\skins\dark\images\plupload\transp50.png" />
     <Content Include="gs\skins\dark\images\rateit\star.png" />
     <Content Include="gs\skins\dark\images\right-arrow-s.png" />
+    <Content Include="gs\skins\dark\images\rss-l.png" />
+    <Content Include="gs\skins\dark\images\rss-m.png" />
+    <Content Include="gs\skins\dark\images\rss-s.png" />
     <Content Include="gs\skins\dark\images\spinner.gif" />
     <Content Include="gs\skins\dark\images\sun-s-o.png" />
     <Content Include="gs\skins\dark\images\supersized\back.png" />
@@ -173,6 +171,8 @@
     <Content Include="gs\skins\dark\images\supersized\thumb-back.png" />
     <Content Include="gs\skins\dark\images\supersized\thumb-forward.png" />
     <Content Include="gs\skins\dark\images\user-s.png" />
+    <Content Include="gs\skins\dark\styles\32px.png" />
+    <Content Include="gs\skins\dark\styles\40px.png" />
     <Content Include="gs\skins\dark\styles\images\animated-overlay.gif" />
     <Content Include="gs\skins\dark\styles\slick.grid.css" />
     <Content Include="gs\skins\light\images\add-album-s.png" />
@@ -242,6 +242,9 @@
     <Content Include="gs\skins\light\images\rotate\right1.gif" />
     <Content Include="gs\skins\light\images\rotate\top.gif" />
     <Content Include="gs\skins\light\images\rotate\top1.gif" />
+    <Content Include="gs\skins\light\images\rss-l.png" />
+    <Content Include="gs\skins\light\images\rss-m.png" />
+    <Content Include="gs\skins\light\images\rss-s.png" />
     <Content Include="gs\skins\light\images\search-l.png" />
     <Content Include="gs\skins\light\images\site-admin-s.png" />
     <Content Include="gs\skins\light\images\spinner.gif" />
@@ -268,8 +271,8 @@
     <Content Include="gs\skins\light\images\user-s.png" />
     <Content Include="gs\skins\light\images\wait-squares.gif" />
     <Content Include="gs\skins\light\images\warning-s.png" />
-    <Content Include="gs\skins\light\styles\d.gif" />
-    <Content Include="gs\skins\light\styles\d.png" />
+    <Content Include="gs\skins\light\styles\32px.png" />
+    <Content Include="gs\skins\light\styles\40px.png" />
     <Content Include="gs\skins\light\styles\gallery.css" />
     <Content Include="gs\skins\light\styles\images\animated-overlay.gif" />
     <Content Include="gs\skins\light\styles\images\ui-bg_diagonals-thick_18_b81900_40x40.png" />
@@ -366,8 +369,9 @@
     <None Include="CodeFiles\Entity\_EntityClassDiagram.cd" />
     <Content Include="gs\skins\dark\styles\images\vdockbar-trans.gif" />
     <Content Include="gs\skins\dark\styles\images\vgrabber.gif" />
-    <Content Include="packages.config" />
-    <None Include="Properties\PublishProfiles\Local gspv3.pubxml" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="galleryserverpro.targets">
       <SubType>Designer</SubType>
     </None>
@@ -375,7 +379,6 @@
     <Content Include="gs\script\debug\jquery.intellisense.js" />
     <Content Include="gs\script\debug\jquery-ui.js" />
     <Content Include="gs\script\plupload\Moxie.swf" />
-    <Content Include="gs\script\plupload\plupload.full.js" />
     <Content Include="gs\script\plupload\Moxie.xap" />
     <Content Include="gs\skins\dark\images\wait-squares.gif" />
     <Content Include="gs\skins\dark\images\warning-s.png" />
@@ -388,8 +391,6 @@
     <Content Include="gs\skins\dark\images\rotate\right1.gif" />
     <Content Include="gs\skins\dark\images\rotate\top.gif" />
     <Content Include="gs\skins\dark\images\rotate\top1.gif" />
-    <Content Include="gs\skins\dark\styles\d.gif" />
-    <Content Include="gs\skins\dark\styles\d.png" />
     <Content Include="gs\skins\dark\styles\images\ui-bg_glass_20_555555_1x400.png" />
     <Content Include="gs\skins\dark\styles\images\ui-bg_glass_40_0078a3_1x400.png" />
     <Content Include="gs\skins\dark\styles\images\ui-bg_gloss-wave_25_333333_500x100.png" />
@@ -422,6 +423,7 @@
     <Compile Include="CodeFiles\AdminPage.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="CodeFiles\Api\FeedController.cs" />
     <Compile Include="CodeFiles\Api\UsersController.cs" />
     <Compile Include="CodeFiles\Api\RolesController.cs" />
     <Compile Include="CodeFiles\Api\EventsController.cs" />
@@ -448,7 +450,6 @@
     <Compile Include="CodeFiles\Entity\MetaItem.cs" />
     <Compile Include="CodeFiles\Entity\GalleryItem.cs" />
     <Compile Include="CodeFiles\Entity\Resource.cs" />
-    <Compile Include="CodeFiles\Entity\Tag.cs" />
     <Compile Include="CodeFiles\GalleryPage.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -1074,9 +1075,8 @@
   </ProjectExtensions>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets')" />
-  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
-    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
-    <Error Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
-  </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

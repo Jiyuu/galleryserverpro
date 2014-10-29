@@ -394,7 +394,7 @@
     <comment>&lt;2007.12.08&gt;</comment>
   </data>
   <data name="MediaObjectHtmlBuilder_Ctor_InvalidBrowsers_Msg" xml:space="preserve">
-    <value>Argument Exception: A valid list of browsers must be passed to the MediaObjectHtmlBuilder constructor. The value passed was either null or contained zero elements. Typically you will call ToArray() on the Request.Browser.Browsers property for the "browsers" parameter.</value>
+    <value>Argument Exception: A valid list of browsers must be passed to the MediaObjectHtmlBuilder constructor. The value passed was either null or contained zero elements. Typically this property is supplied by calling Utils.GetBrowserIdsForCurrentRequest().</value>
     <comment>&lt;2009.05.13&gt;</comment>
   </data>
   <data name="UC_ActionMenu_Add_Objects_Text" xml:space="preserve">
@@ -1894,7 +1894,7 @@
     <comment>&lt;2009.05.13&gt;</comment>
   </data>
   <data name="Admin_MimeTypes_Overview_Bdy" xml:space="preserve">
-    <value>&lt;p&gt;Use this page to manage the types of files Gallery Server Pro manages. By default only files with a .jpg or .jpeg file extension are allowed.&lt;/p&gt;&lt;p&gt;If you disable a file type that has existing media objects in the gallery, those objects will be removed from the gallery during the next synchronization (the files will not be deleted, however).&lt;/p&gt;&lt;p&gt;To add a file extension not in this list, add a record to the gsp_MimeType table in the database, then restart the application to reload the data.&lt;/p&gt;</value>
+    <value>&lt;p&gt;Use this page to manage the types of files Gallery Server Pro manages. By default only files with a .jpg or .jpeg file extension are allowed.&lt;/p&gt;&lt;p&gt;If you disable a file type that has existing media objects in the gallery, those objects will be removed from the gallery during the next synchronization (the files will not be deleted, however).&lt;/p&gt;&lt;p&gt;To add a file extension not in this list, add a record to the MimeType table in the database, then restart the application to reload the data.&lt;/p&gt;</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
   <data name="Admin_MimeTypes_Overview_Hdr" xml:space="preserve">
@@ -1950,7 +1950,7 @@
     <comment>&lt;2013.11.15&gt;</comment>
   </data>
   <data name="Site_Virtual_Album_Title" xml:space="preserve">
-    <value>All albums</value>
+    <value>ALL ALBUMS</value>
     <comment>&lt;2007.12.08&gt;</comment>
   </data>
   <data name="Site_Album_Lbl" xml:space="preserve">
@@ -2484,8 +2484,8 @@
     <comment>&lt;2008.12.31&gt;</comment>
   </data>
   <data name="Login_My_Account_Link_Text" xml:space="preserve">
-    <value>My account</value>
-    <comment>&lt;2008.12.31&gt; Text of the hyperlink at the top right that takes user to his account page.</comment>
+    <value>Account settings</value>
+    <comment>&lt;2014.05.12&gt;</comment>
   </data>
   <data name="Login_Password_Label_Text" xml:space="preserve">
     <value>Password</value>
@@ -2746,6 +2746,10 @@
   <data name="UC_Album_Sort_By_Tt" xml:space="preserve">
     <value>Sort album by...</value>
     <comment>&lt;2013.06.01&gt;</comment>
+  </data>
+  <data name="UC_Album_Sort_By_Custom" xml:space="preserve">
+    <value>Custom</value>
+    <comment>&lt;2014.05.12&gt;</comment>
   </data>
   <data name="UC_Album_Sort_By_Title" xml:space="preserve">
     <value>Title</value>
@@ -4983,8 +4987,8 @@
     <value>Cascading Style Sheets</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
-  <data name="Admin_Templates_Cannot_Delete_Default_Tmpl_Msg" xml:space="preserve">
-    <value>Cannot delete: You cannot delete the default template.</value>
+  <data name="Admin_Templates_Cannot_Modify_Default_Tmpl_Msg" xml:space="preserve">
+    <value>Cannot persist changes: You cannot modify or delete the default template.</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
   <data name="Admin_Media_Templates_Cannot_Delete_Default_Tmpl_Msg" xml:space="preserve">
@@ -4996,7 +5000,7 @@
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
   <data name="Admin_Media_Templates_Cannot_Save_No_Matching_MimeType_Msg" xml:space="preserve">
-    <value>Cannot save: The MIME type {0} does not exist in the master list of MIME types. Add a record for this item to the table gsp_MimeType, recycle the IIS application pool, and then try again.</value>
+    <value>Cannot save: The MIME type {0} does not exist in the master list of MIME types. Add a record for this item to the table MimeType, recycle the IIS application pool, and then try again.</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
   <data name="Admin_Templates_Cannot_Save_Duplicate_Name_Msg" xml:space="preserve">
@@ -5007,12 +5011,12 @@
     <value>Cannot save: Your changes would result in one or more albums having no UI template.</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
-  <data name="Admin_Templates_Cannot_Delete_No_Tmpl_Msg" xml:space="preserve">
-    <value>Cannot delete: Your changes would result in one or more albums having no UI template.</value>
+	<data name="Admin_Templates_Cannot_Save_No_Default_Tmpl_Msg" xml:space="preserve">
+    <value>Cannot rename the default template: Each gallery item must have one template named Default.</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
-  <data name="Admin_Templates_Cannot_Save_No_Default_Tmpl_Msg" xml:space="preserve">
-    <value>Cannot rename the default template: Each gallery item must have one template named Default.</value>
+  <data name="Admin_Templates_Cannot_Delete_No_Tmpl_Msg" xml:space="preserve">
+    <value>Cannot delete: Your changes would result in one or more albums having no UI template.</value>
     <comment>&lt;2013.06.01&gt;</comment>
   </data>
   <data name="Admin_Templates_Deleted_Msg" xml:space="preserve">
@@ -5398,5 +5402,68 @@
   <data name="UC_MoView_Tb_Ss_Start_Tt" xml:space="preserve">
     <value>Play slideshow</value>
     <comment>&lt;2013.06.01&gt;</comment>
+  </data>
+  <data name="Site_People_Tree_Root_Node_Title" xml:space="preserve">
+    <value>PEOPLE</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Tag_Tree_Node_Tt" xml:space="preserve">
+    <value>Click to view all items tagged with {0}</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Tag_Tree_Root_Node_Title" xml:space="preserve">
+    <value>POPULAR TAGS</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Recently_Added_Title" xml:space="preserve">
+    <value>Recently added to this gallery</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Search_Concat" xml:space="preserve">
+    <value> and </value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Search_Title" xml:space="preserve">
+    <value>Search results for </value>
+  </data>
+  <data name="Site_Tag_Title" xml:space="preserve">
+    <value>Items tagged with </value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="UC_LeftPane_People_Text" xml:space="preserve">
+    <value>PEOPLE</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="UC_LeftPane_RecentlyAdded_Text" xml:space="preserve">
+    <value>RECENTLY ADDED</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="UC_LeftPane_Tags_Text" xml:space="preserve">
+    <value>POPULAR TAGS</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="UC_Album_Rss_Tt" xml:space="preserve">
+    <value>RSS feed for this album</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Highest_Rated_Title" xml:space="preserve">
+    <value>Highest rated items</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Lowest_Rated_Title" xml:space="preserve">
+    <value>Lowest rated items</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_None_Rated_Title" xml:space="preserve">
+    <value>Items without a rating</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="Site_Rated_Title" xml:space="preserve">
+    <value>Items with a rating of {0}</value>
+    <comment>&lt;2014.05.12&gt;</comment>
+  </data>
+  <data name="UC_LeftPane_TopRated_Text" xml:space="preserve">
+    <value>TOP RATED</value>
+    <comment>&lt;2014.05.12&gt;</comment>
   </data>
 </root>

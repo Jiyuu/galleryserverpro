@@ -233,7 +233,7 @@ namespace GalleryServerPro.Web.Controller
 
 			Entity.TreeViewOptions tvOptions = new Entity.TreeViewOptions()
 			{
-				ShowCheckbox = true,
+				EnableCheckboxPlugin = true,
 				RequiredSecurityPermissions = SecurityActions.AdministerSite | SecurityActions.AdministerGallery,
 				Galleries = Factory.LoadGalleries(),
 				RootAlbumPrefix = String.Concat(Resources.GalleryServerPro.Site_Gallery_Text, " '{GalleryDescription}': "),
@@ -243,8 +243,6 @@ namespace GalleryServerPro.Web.Controller
 			Entity.TreeView tv = AlbumTreeViewBuilder.GetAlbumsAsTreeView(tvOptions);
 
 			r.AlbumTreeDataJson = tv.ToJson();
-			//r.SelectedAlbumIds = rootAlbumIds.ToArray();
-			//r.AlbumTreeNodesToCheckClientIds = tv.NodesToCheckIdArray.ToArray();
 			r.SelectedRootAlbumIds = rootAlbumIds.ToArray();
 
 			r.Members = RoleController.GetUsersInRole(r.Name);

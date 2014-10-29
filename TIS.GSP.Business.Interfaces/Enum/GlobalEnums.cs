@@ -758,7 +758,7 @@ namespace GalleryServerPro.Business
 		/// <summary>
 		/// Specifies that no gallery object type has been assigned.
 		/// </summary>
-		None = 0,
+		NotSpecified = 0,
 		/// <summary>
 		/// Gets all possible gallery object types.
 		/// </summary>
@@ -794,7 +794,60 @@ namespace GalleryServerPro.Business
 		/// <summary>
 		/// Gets the Unknown gallery object type.
 		/// </summary>
-		Unknown = 9
+		Unknown = 9,
+		/// <summary>
+		/// Specifies no gallery object type.
+		/// </summary>
+		None = 10
+	}
+
+	/// <summary>
+	/// Contains functionality to support the <see cref="GalleryObjectType" /> enumeration.
+	/// </summary>
+	public static class GalleryObjectTypeEnumHelper
+	{
+		/// <summary>
+		/// Determines if the galleryObjectType parameter is one of the defined enumerations. This method is more efficient than using
+		/// <see cref="Enum.IsDefined" />, since <see cref="Enum.IsDefined" /> uses reflection.
+		/// </summary>
+		/// <param name="galleryObjectType">An instance of <see cref="GalleryObjectType" /> to test.</param>
+		/// <returns>Returns true if galleryObjectType is one of the defined items in the enumeration; otherwise returns false.</returns>
+		public static bool IsValidGalleryObjectType(GalleryObjectType galleryObjectType)
+		{
+			switch (galleryObjectType)
+			{
+				case GalleryObjectType.NotSpecified:
+				case GalleryObjectType.All:
+				case GalleryObjectType.MediaObject:
+				case GalleryObjectType.Album:
+				case GalleryObjectType.Image:
+				case GalleryObjectType.Audio:
+				case GalleryObjectType.Video:
+				case GalleryObjectType.Generic:
+				case GalleryObjectType.External:
+				case GalleryObjectType.Unknown:
+				case GalleryObjectType.None:
+					break;
+
+				default:
+					return false;
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Parses the string into an instance of <see cref="GalleryObjectType" />. If <paramref name="galleryObjectType"/>
+		/// is null, empty, or an invalid value, then <paramref name="defaultFilter" /> is returned.
+		/// </summary>
+		/// <param name="galleryObjectType">The gallery object type to parse into an instance of <see cref="GalleryObjectType" />.</param>
+		/// <param name="defaultFilter">The value to return if <paramref name="galleryObjectType" /> is invalid.</param>
+		/// <returns>Returns an instance of <see cref="GalleryObjectType" />.</returns>
+		public static GalleryObjectType Parse(string galleryObjectType, GalleryObjectType defaultFilter)
+		{
+			GalleryObjectType got;
+
+			return Enum.TryParse(galleryObjectType, true, out got) ? got : defaultFilter;
+		}
 	}
 
 	/// <summary>
@@ -953,7 +1006,15 @@ namespace GalleryServerPro.Business
 		/// <summary>
 		/// Gets the schema version for 3.1.0.
 		/// </summary>
-		V3_1_0
+		V3_1_0,
+		/// <summary>
+		/// Gets the schema version for 3.2.0.
+		/// </summary>
+		V3_2_0,
+		/// <summary>
+		/// Gets the schema version for 3.2.1.
+		/// </summary>
+		V3_2_1
 	}
 
 	/// <summary>
@@ -1000,6 +1061,10 @@ namespace GalleryServerPro.Business
 					return "3.0.3";
 				case GalleryDataSchemaVersion.V3_1_0:
 					return "3.1.0";
+				case GalleryDataSchemaVersion.V3_2_0:
+					return "3.2.0";
+				case GalleryDataSchemaVersion.V3_2_1:
+					return "3.2.1";
 				default:
 					throw new InvalidEnumArgumentException(String.Format(CultureInfo.CurrentCulture, "The function GalleryServerPro.Business.ConvertGalleryDataSchemaVersionToString was not designed to handle the GalleryDataSchemaVersion enumeration value {0}. A developer must update this method to handle this value.", version));
 			}
@@ -1063,6 +1128,10 @@ namespace GalleryServerPro.Business
 					return GalleryDataSchemaVersion.V3_0_3;
 				case "3.1.0":
 					return GalleryDataSchemaVersion.V3_1_0;
+				case "3.2.0":
+					return GalleryDataSchemaVersion.V3_2_0;
+				case "3.2.1":
+					return GalleryDataSchemaVersion.V3_2_1;
 				default:
 					return GalleryDataSchemaVersion.Unknown;
 			}
@@ -1238,7 +1307,7 @@ namespace GalleryServerPro.Business
 		ThumbnailSuccessfullyAssigned = 1,
 		CannotAssignThumbnailNoObjectsExistInAlbum = 2,
 		CannotEditCaptionsNoEditableObjectsExistInAlbum = 3,
-		CannotRearrangeNoObjectsExistInAlbum = 4,
+		//CannotRearrangeNoObjectsExistInAlbum = 4,
 		CannotRotateNoRotatableObjectsExistInAlbum = 5,
 		CannotMoveNoObjectsExistInAlbum = 6,
 		CannotCopyNoObjectsExistInAlbum = 7,
@@ -1309,7 +1378,17 @@ namespace GalleryServerPro.Business
 		/// Indicates a request for the highest album the current user can view.
 		/// </summary>
 		HighestAlbumUserCanView,
-	}
+
+		/// <summary>
+		/// Indicates the most recently added gallery objects.
+		/// </summary>
+		MostRecentlyAdded,
+
+		/// <summary>
+		/// Indicates that a search by rating is specified.
+		/// </summary>
+		SearchByRating
+}
 
 	/// <summary>
 	/// Identifies the type of search being performed.
@@ -1382,7 +1461,17 @@ namespace GalleryServerPro.Business
 		/// <summary>
 		/// Indicates that a virtual album contains the results of a title/caption search.
 		/// </summary>
-		TitleOrCaption = 6
+		TitleOrCaption = 6,
+
+		/// <summary>
+		/// Indicates the most recently added gallery objects.
+		/// </summary>
+		MostRecentlyAdded = 7,
+
+		/// <summary>
+		/// Indicates gallery objects having a specific rating.
+		/// </summary>
+		Rated = 8
 	}
 
 	/// <summary>

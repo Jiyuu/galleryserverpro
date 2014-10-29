@@ -1505,6 +1505,7 @@ namespace GalleryServerPro.Business
 				{
 					// Update value only when we have some data. This helps prevent overwriting user-entered data.
 					existingMetaItem.Value = metaItem.Value;
+					existingMetaItem.RawValue = metaItem.RawValue;
 				}
 			}
 			else

@@ -54,38 +54,11 @@ namespace GalleryServerPro.Web.Pages
 					_leftPane.ClientIDMode = ClientIDMode.Static;
 					_leftPane.ID = LeftPaneClientId;
 					_leftPane.CssClass = "gsp_tb_s_LeftPane gsp_tb_s_pane";
-					//_leftPane.Controls.Add(AlbumTreeView);
 				}
 
 				return _leftPane;
 			}
 		}
-
-		//private Controls.albumtreeview AlbumTreeView
-		//{
-		//  get
-		//  {
-		//    Controls.albumtreeview albumTreeView = (Controls.albumtreeview)LoadControl(Utils.GetUrl("/controls/albumtreeview.ascx"));
-
-		//    albumTreeView.RequiredSecurityPermissions = SecurityActions.ViewAlbumOrMediaObject;
-		//    //albumTreeView.TreeViewTheme = "gsp";
-		//    albumTreeView.ShowCheckbox = false;
-		//    albumTreeView.NavigateUrl = Utils.GetCurrentPageUrl();
-
-		//    int albumId = GetAlbumId();
-		//    if (albumId > int.MinValue)
-		//    {
-		//      albumTreeView.SelectedAlbumIds.Add(albumId);
-		//    }
-
-		//    if (albumTreeView.TreeView.Nodes.Count > 0)
-		//    {
-		//      AlbumTreeViewIsVisible = true;
-		//    }
-
-		//    return albumTreeView;
-		//  }
-		//}
 
 		private Panel CenterAndRightPanesContainer
 		{
@@ -158,7 +131,6 @@ namespace GalleryServerPro.Web.Pages
 					_rightPane.ClientIDMode = ClientIDMode.Static;
 					_rightPane.ID = RightPaneClientId;
 					_rightPane.CssClass = "gsp_tb_s_RightPane gsp_tb_s_pane";
-					//_rightPane.Controls.Add(new LiteralControl("Right pane"));
 				}
 
 				return _rightPane;
@@ -203,7 +175,7 @@ namespace GalleryServerPro.Web.Pages
 		{
 			AddPanes();
 
-			RegisterJavascript();
+			RegisterJavaScript();
 		}
 
 		private void AddPanes()
@@ -235,19 +207,21 @@ namespace GalleryServerPro.Web.Pages
 
 		private void MediaBeforeHeaderControlsAdded(object sender, EventArgs e)
 		{
-			//ShowLeftPaneForAlbum = this.GalleryControl.ShowLeftPaneForAlbum.GetValueOrDefault(false);
 		}
 
 		#endregion
 
 		#region Functions
 
-		private void RegisterJavascript()
+		private void RegisterJavaScript()
 		{
 			// Add left and right pane templates, then invoke their scripts.
 			// Note that when the header is visible, we wait for it to finish rendering before running our script.
 			// We do this so  that the splitter's height calculations are correct.
-			string script = String.Format(CultureInfo.InvariantCulture, @"
+			// When the device is a touchscreen, we double the width of the splitter pane (from 6px to 12px).
+			// We trigger a javascript event gspPanesRendered so that any dependent code that queries the final width
+			// and height of the panes can run (not currently used anywhere but could be useful to UI template editors).
+			var script = String.Format(CultureInfo.InvariantCulture, @"
 {0}
 {1}
 <script>
@@ -255,10 +229,14 @@ namespace GalleryServerPro.Web.Pages
 		var runPaneScripts = function() {{
 			{2}
 			{3}
+			{4}
+			{6}
+
+			$(document.documentElement).trigger('gspPanesRendered.{5}');
 		}};
 
-		if (window.{4}.gspData.Settings.ShowHeader)
-			$(document.documentElement).on('gspHeaderLoaded.{4}', runPaneScripts);
+		if (window.{5}.gspData.Settings.ShowHeader)
+			$(document.documentElement).on('gspHeaderLoaded.{5}', runPaneScripts);
 		else
 			runPaneScripts();
 	}});
@@ -268,10 +246,38 @@ namespace GalleryServerPro.Web.Pages
 				GetRightPaneTemplates(), // 1
 				GetLeftPaneScript(), // 2
 				GetRightPaneScript(), // 3
-				GspClientId // 4
+				GetCenterPaneScript(), // 4
+				GspClientId, // 5
+				GetTouchScreenHacks() // 6
 				);
 
 			this.Page.ClientScript.RegisterStartupScript(this.GetType(), String.Concat(this.ClientID, "_mediaScript"), script, false);
+		}
+
+		/// <summary>
+		/// Gets some JavaScript to make touchscreen devices work better.
+		/// </summary>
+		/// <returns>System.String.</returns>
+		private static string GetTouchScreenHacks()
+		{
+			// Implement these rules if a touchscreen less than 1500px wide is detected:
+			// 1. Increase width of splitter bar to 12px.
+			// 2. For non-IE browsers:
+			//    (a) Remove scrollbars in center pane (necessary because Safari/Chrome has hidden scrollbars on 
+			//        small devices that can't be selected, and the Selectable in the center pane prevents scrolling.
+			//    (b) Make splitter bars draggable, which activates the Touch Punch hack
+			var browserCaps = System.Web.HttpContext.Current.Request.Browser;
+			var isIe = (browserCaps != null) && (browserCaps.Browser != null) && browserCaps.Browser.Equals("InternetExplorer", StringComparison.OrdinalIgnoreCase);
+			
+			const string nonIeScript = @"
+	$('.gsp_tb_s_CenterPane').css('overflow', 'visible');
+	$('.splitter-bar').draggable();";
+
+			return String.Format(CultureInfo.InvariantCulture, @"
+if (window.Gsp.isTouchScreen() && window.Gsp.isWidthLessThan(1500)) {{
+	$('.splitter-bar-vertical').width('12');{0}
+}}",
+				 isIe ? String.Empty : nonIeScript);
 		}
 
 		private string GetLeftPaneTemplates()
@@ -317,10 +323,6 @@ namespace GalleryServerPro.Web.Pages
 			if (!LeftPaneVisible)
 				return String.Empty;
 
-			// If isTouchScreen = true & center and right pane is visible, then hide left pane
-			// But what if someone changes the left pane template and *wants* it visible?
-			// Move logic to left pane template script?
-
 			// Call splitter jQuery plug-in that sets up the split between the left and center panes
 			// The splitter is only called when the gallery control's width is greater than 750px, because
 			// we don't want it on small media screens (like smart phones)
@@ -343,10 +345,10 @@ $.templates({{{0}: $('#{1}').html() }});
 				return String.Empty;
 
 			// Call splitter jQuery plug-in that sets up the split between the left and center panes
-			// The splitter is only called for non-touch screens when the gallery control's width is greater than 750px, 
-			// because we don't want it on small media screens (like smart phones) and the splitter isn't touchable.
+			// The splitter is only called when the gallery control's width is greater than 750px, 
+			// because we don't want it on small media screens (like smart phones).
 			return String.Format(CultureInfo.InvariantCulture, @"
-if (!window.Gsp.isTouchScreen() && $('#{0}').width() >= 750) {{
+if ($('#{0}').width() >= 750) {{
 	$('#{1}').splitter({{
 		type: 'v',
 		outline: false,
@@ -389,16 +391,27 @@ $.templates({{{0}: $('#{1}').html() }});
 			);
 		}
 
+		private string GetCenterPaneScript()
+		{
+			if ((LeftPaneVisible && RightPaneVisible) || !CenterPaneVisible)
+				return String.Empty;
+
+			// When either the left pane or right pane is hidden, we no longer want overflow:auto applied to
+			// the center pane.
+			return String.Format("$('.gsp_tb_s_CenterPane', $('#{0}')).css('overflow', 'inherit');",
+				GspClientId);
+		}
+
 		private string GetRightPaneSplitterScript()
 		{
 			// Call splitter jQuery plug-in that sets up the split between the center and right panes.
-			// The splitter is only called for non-touch screens when the gallery control's width is greater than 750px, 
-			// because we don't want it on small media screens (like smart phones) and the splitter isn't touchable.
+			// The splitter is only called when the gallery control's width is greater than 750px, 
+			// because we don't want it on small media screens (like smart phones).
 			if (!CenterPaneVisible)
 				return String.Empty;
 
 			return String.Format(CultureInfo.InvariantCulture, @"
-if (!window.Gsp.isTouchScreen() && $('#{0}').width() >= 750) {{
+if ($('#{0}').width() >= 750) {{
 	$('#{1}').splitter({{
 		type: 'v',
 		outline: false,

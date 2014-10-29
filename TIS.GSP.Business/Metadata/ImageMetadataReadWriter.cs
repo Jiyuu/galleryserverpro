@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Media.Imaging;
 using GalleryServerPro.Business.Interfaces;
@@ -313,7 +314,7 @@ namespace GalleryServerPro.Business.Metadata
 			catch (ArgumentException) { }
 			catch (InvalidOperationException) { }
 
-			return (wpfValue != null ? new MetaValue(wpfValue.Trim(), wpfValue) : null);
+			return (!String.IsNullOrWhiteSpace(wpfValue) ? new MetaValue(wpfValue.Trim(), wpfValue) : null);
 		}
 
 		private IMetaValue GetDatePictureTaken()
@@ -931,6 +932,11 @@ namespace GalleryServerPro.Business.Metadata
 			{
 				iptcValue = WpfMetadata.GetQuery(String.Format(CultureInfo.InvariantCulture, IptcQueryFormatString, IptcQueryParameters[metaName])) as string;
 			}
+			catch (ArgumentNullException)
+			{
+				// Some images throw this exception. When this happens, just exit.
+				return null;
+			}
 			catch (InvalidOperationException)
 			{
 				// Some images throw this exception. When this happens, just exit.
@@ -1198,10 +1204,15 @@ namespace GalleryServerPro.Business.Metadata
 			if (stringCollection == null)
 				return null;
 
-			const string delimiter = ", ";
-			string[] strings = new string[stringCollection.Count];
-			stringCollection.CopyTo(strings, 0);
-			return String.Join(delimiter, strings);
+			// If any of the entries is itself a comma-separated list, parse them. Remove any duplicates.
+			var strings = new List<String>();
+
+			foreach (var s in stringCollection)
+			{
+				strings.AddRange(s.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).Select(s1 => s1.Trim()));
+			}
+
+			return String.Join(", ", strings.Distinct());
 		}
 
 		private static void LogError(Exception ex, int galleryId)

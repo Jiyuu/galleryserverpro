@@ -43,11 +43,11 @@
   </p>
 	<asp:Repeater ID="rptr" runat="server">
 		<HeaderTemplate>
-			<div class="gsp_floatcontainer">
+			<ul class="gsp_floatcontainer">
 		</HeaderTemplate>
 		<ItemTemplate>
-			<div class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
-				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem, false) %>
+			<li class="<%# GetThumbnailCssClass(Container.DataItem.GetType()) %>">
+				<%# GetThumbnailHtml((IGalleryObject) Container.DataItem) %>
 				<p class="gsp_go_t" style="width:<%# GetTitleWidth((IGalleryObject) Container.DataItem) %>;">
 					<%# GetGalleryObjectText(Eval("Title").ToString(), Container.DataItem.GetType()) %></p>
 				<p id="p2" runat="server" class="gsp_msgwarning" visible='<%# ShouldShowNoOriginalFileMsg((IGalleryObject) Container.DataItem) %>'>
@@ -56,10 +56,10 @@
 					<asp:CheckBox ID="chkbx" runat="server" Text='<%# GetSavings((IGalleryObject)Container.DataItem) %>' />
 					<asp:HiddenField ID="hdn" runat="server" Value="<%# GetId((IGalleryObject) Container.DataItem) %>" />
 				</p>
-			</div>
+			</li>
 		</ItemTemplate>
 		<FooterTemplate>
-			</div>
+			</ul>
 		</FooterTemplate>
 	</asp:Repeater>
 	<asp:PlaceHolder ID="phTaskFooter" runat="server" />

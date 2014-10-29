@@ -42,6 +42,8 @@ namespace GalleryServerPro.Data
 					case GalleryDataSchemaVersion.V3_0_1: UpgradeTo302(ctx); break;
 					case GalleryDataSchemaVersion.V3_0_2: UpgradeTo303(ctx); break;
 					case GalleryDataSchemaVersion.V3_0_3: UpgradeTo310(ctx); break;
+					case GalleryDataSchemaVersion.V3_1_0: UpgradeTo320(ctx); break;
+					case GalleryDataSchemaVersion.V3_2_0: UpgradeTo321(ctx); break;
 				}
 
 				curSchema = GetCurrentSchema(ctx);
@@ -349,6 +351,219 @@ $('#{UniqueId}_frame').attr('src', '{MediaObjectUrl}').css('visibility', 'visibl
 			// Update data schema version to 3.1.0
 			var asDataSchema = ctx.AppSettings.First(a => a.SettingName == "DataSchemaVersion");
 			asDataSchema.SettingValue = "3.1.0";
+
+			ctx.SaveChanges();
+		}
+
+		/// <summary>
+		/// Upgrades the 3.1.0 data to the 3.2.0 data. Applies to data such as app settings, gallery settings, templates, etc.
+		/// Does not contain data structure changes such as new columns.
+		/// </summary>
+		/// <param name="ctx">Context to be used for updating data.</param>
+		private static void UpgradeTo320(GalleryDb ctx)
+		{
+			foreach (var uiTmpl in ctx.UiTemplates.Where(t => t.TemplateType == UiTemplateType.Album))
+			{
+				// Task 669: Allow manual sorting of media objects
+				// Step 1: Add the Custom option to the sort by dropdown
+				var srcText = @"<li class='gsp_abm_sum_sbi_hdr'>{{:Resource.AbmSortbyTt}}</li>";
+
+				var replText = @"<li class='gsp_abm_sum_sbi_hdr'>{{:Resource.AbmSortbyTt}}</li>
+{{if Album.VirtualType == 1 && Album.Permissions.EditAlbum}}<li><a href='#' data-id='-2147483648'>{{:Resource.AbmSortbyCustom}}</a></li>{{/if}}";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+
+				// Step 2: Convert the thumbnails into a list of <li> tags instead of <div>'s. Required for jQuery UI Sortable.
+				srcText = @"<div class='gsp_floatcontainer'>
+ {{for Album.GalleryItems}}
+ <div class='thmb{{if IsAlbum}} album{{/if}}' data-id='{{:Id}}' data-it='{{:ItemType}}'>
+	<a class='gsp_thmbLink' href='{{: ~getGalleryItemUrl(#data, !IsAlbum) }}'>
+	 <img class='gsp_thmb_img' style='width:{{:Views[ViewIndex].Width}}px;height:{{:Views[ViewIndex].Height}}px;' src='{{:Views[ViewIndex].Url}}'>
+	</a>
+	<p class='gsp_go_t' style='width:{{:Views[ViewIndex].Width + 40}}px;' title='{{stripHtml:Title}}'>{{stripHtmlAndTruncate:Title}}</p>
+ </div>
+ {{/for}}
+</div>";
+
+				replText = @"<ul class='gsp_floatcontainer gsp_abm_thmbs'>
+ {{for Album.GalleryItems}}
+ <li class='thmb{{if IsAlbum}} album{{/if}}' data-id='{{:Id}}' data-it='{{:ItemType}}' style='width:{{:Views[ViewIndex].Width + 40}}px;'>
+	<a class='gsp_thmbLink' href='{{: ~getGalleryItemUrl(#data, !IsAlbum) }}'>
+	 <img class='gsp_thmb_img' style='width:{{:Views[ViewIndex].Width}}px;height:{{:Views[ViewIndex].Height}}px;' src='{{:Views[ViewIndex].Url}}'>
+	</a>
+	<p class='gsp_go_t' title='{{stripHtml:Title}}'>{{stripHtmlAndTruncate:Title}}</p>
+ </li>
+ {{/for}}
+</ul>";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+
+				// Step 3: Update the JavaScript so that left pane is rendered regardless of whether the client is on a touchscreen device
+				srcText = @"var isTouch = window.Gsp.isTouchScreen();
+var renderLeftPane = !isTouch  || (isTouch && ($('.gsp_tb_s_CenterPane:visible, .gsp_tb_s_RightPane:visible').length == 0));
+
+if (renderLeftPane ) {
+ $('#{{:Settings.LeftPaneClientId}}').html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));
+";
+
+				replText = @"var $lp = $('#{{:Settings.LeftPaneClientId}}');
+
+if ($lp.length > 0) {
+ $lp.html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));
+";
+
+				uiTmpl.ScriptTemplate = uiTmpl.ScriptTemplate.Replace(srcText, replText);
+
+				// Bug 709: Link to add objects page should not appear in empty virtual albums
+				// Add a condition to the if statement so that Add link appears only for non-virtual albums
+				srcText = @"{{if Album.Permissions.AddMediaObject}}<a href='{{: ~getAddUrl(#data) }}'>{{:Resource.AbmAddObj}}</a>{{/if}}";
+
+				replText = @"{{if Album.VirtualType == 1 && Album.Permissions.AddMediaObject}}<a href='{{: ~getAddUrl(#data) }}'>{{:Resource.AbmAddObj}}</a>{{/if}}";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+
+				// Task 722: Add RSS link to album template
+				srcText = @"
+	<span class='gsp_abm_sum_col1_row1_hdr'>{{:Resource.AbmPfx}}</span>";
+
+				replText = @"
+{{if Album.RssUrl}}
+	<a class='gsp_abm_sum_btn' href='{{:Album.RssUrl}}'>
+		<img src='{{:App.SkinPath}}/images/rss-s.png' title='{{:Resource.AbmRssTt}}' alt=''>
+	</a>
+{{/if}}
+	<span class='gsp_abm_sum_col1_row1_hdr'>{{:Resource.AbmPfx}}</span>";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+
+				// Task 730: Assign owner button should not be visible for virtual albums
+				srcText = @"
+{{if Album.Permissions.AdministerGallery}}
+	<a class='gsp_abm_sum_ownr_trigger gsp_abm_sum_btn' href='#'>";
+
+				replText = @"
+{{if Album.VirtualType == 1 && Album.Permissions.AdministerGallery}}
+	<a class='gsp_abm_sum_ownr_trigger gsp_abm_sum_btn' href='#'>";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+			}
+
+			// Task 681: Merge My account button into username in header
+			foreach (var uiTmpl in ctx.UiTemplates.Where(t => t.TemplateType == UiTemplateType.Header))
+			{
+				// Step 1: Remove the HTML for the 'My account' icon
+				var srcText = @"
+	{{if Settings.AllowManageOwnAccount}}
+	<div class='gsp_useroption'>
+	 <a class='gsp_myaccountlink' href='{{:App.CurrentPageUrl}}?g=myaccount&aid={{:Album.Id}}'>
+		<img class='gsp_myaccount-user-icon' title='{{:Resource.HdrMyAccountTt}}' alt='{{:Resource.HdrMyAccountTt}}' src='{{:App.SkinPath}}/images/user-l.png'>
+	 </a></div>
+	 {{/if}}";
+
+				var replText = "";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+
+				// Step 2: Replace the username with a hyperlinked username that takes user to 'My account' page,
+				// except when AllowManageOwnAccount=false, in which case just display the username like before.
+				srcText = @"	<span id='{{:Settings.ClientId}}_userwelcome' class='gsp_welcome'>{{:User.UserName}}</span></div>";
+
+				replText = @"{{if Settings.AllowManageOwnAccount}}
+		<a id='{{:Settings.ClientId}}_userwelcome' href='{{:App.CurrentPageUrl}}?g=myaccount&aid={{:Album.Id}}' class='gsp_welcome' title='{{:Resource.HdrMyAccountTt}}'>{{:User.UserName}}</a>
+	 {{else}}
+		<span id='{{:Settings.ClientId}}_userwelcome' class='gsp_welcome'>{{:User.UserName}}</span>
+	 {{/if}}
+	 </div>";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+			}
+
+			foreach (var uiTmpl in ctx.UiTemplates.Where(t => t.TemplateType == UiTemplateType.LeftPane))
+			{
+				// Task 675: Add RECENTLY ADDED and TOP RATED links to left pane
+				const string srcText = @"<div id='{{:Settings.ClientId}}_lptv'></div>";
+
+				const string replText = @"<div id='{{:Settings.ClientId}}_lptv' class='gsp_lpalbumtree'></div>
+{{if App.LatestUrl}}<p class='gsp_lplatest'><a href='{{:App.LatestUrl}}' class='jstree-anchor'><i class='jstree-icon'></i>{{:Resource.LpRecent}}</a></p>{{/if}}
+{{if App.TopRatedUrl}}<p class='gsp_lptoprated'><a href='{{:App.TopRatedUrl}}' class='jstree-anchor'><i class='jstree-icon'></i>{{:Resource.LpTopRated}}</a></p>{{/if}}";
+
+				uiTmpl.HtmlTemplate = uiTmpl.HtmlTemplate.Replace(srcText, replText);
+			}
+
+			// Task 727: Update jQuery 1.10.2 to 1.11.1. Update jQuery UI 1.10.3 to 1.10.4.
+			var appSetting = ctx.AppSettings.FirstOrDefault(a => a.SettingName == "JQueryScriptPath");
+
+			if (appSetting != null && appSetting.SettingValue == "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js")
+			{
+				appSetting.SettingValue = "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js";
+			}
+
+			appSetting = ctx.AppSettings.FirstOrDefault(a => a.SettingName == "JQueryUiScriptPath");
+
+			if (appSetting != null && appSetting.SettingValue == "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js")
+			{
+				appSetting.SettingValue = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js";
+			}
+
+			// Task 722: Now that {MediaObjectUrl} is an absolute URL, remove any instances of {HostUrl} that precede it.
+			// Under default settings this only affects the HTML portion of two video/divx records, but we're making it more 
+			// generic to catch any customizations an admin may have done.
+			foreach (var tmpl in ctx.MediaTemplates.Where(mt => mt.HtmlTemplate.Contains("{HostUrl}{MediaObjectUrl}") || mt.ScriptTemplate.Contains("{HostUrl}{MediaObjectUrl}")))
+			{
+				tmpl.HtmlTemplate = tmpl.HtmlTemplate.Replace("{HostUrl}{MediaObjectUrl}", "{MediaObjectUrl}");
+				tmpl.ScriptTemplate = tmpl.ScriptTemplate.Replace("{HostUrl}{MediaObjectUrl}", "{MediaObjectUrl}");
+			}
+
+			// Update data schema version to 3.2.0
+			var asDataSchema = ctx.AppSettings.First(a => a.SettingName == "DataSchemaVersion");
+			asDataSchema.SettingValue = "3.2.0";
+
+			ctx.SaveChanges();
+
+			// Task 674: Add/update Enterprise UI templates introduced in 3.2.0
+			var pkRow = ctx.AppSettings.Single(a => a.SettingName == "ProductKey");
+
+			if (pkRow.SettingValue == Constants.ProductKeyEnterprise)
+			{
+				SeedController.InsertEnterpriseTemplates();
+			}
+		}
+
+		// Note for next migration. I forgot the left pane JS replacement in the section "Task 671: Improve touchscreen support"
+		// above in the initial release of 3.2.0. It was added on May 19, 4 days after the 3.2.0 release.
+		// As an extra precaution, we should re-apply this fix in the next migration as well, so anyone who didn't manually
+		// update their template still gets the fix.
+
+		/// <summary>
+		/// Upgrades the 3.2.0 data to the 3.2.1 data. Applies to data such as app settings, gallery settings, templates, etc.
+		/// Does not contain data structure changes such as new columns.
+		/// </summary>
+		/// <param name="ctx">Context to be used for updating data.</param>
+		private static void UpgradeTo321(GalleryDb ctx)
+		{
+			foreach (var uiTmpl in ctx.UiTemplates.Where(t => t.TemplateType == UiTemplateType.LeftPane))
+			{
+				// Task 671: Improve touchscreen support.
+				// NOTE: This should have been in the 3.2.0 upgrade, but it was forgotten.
+				const string srcText = @"// Render the left pane, but not for touchscreens UNLESS the left pane is the only visible pane
+var isTouch = window.Gsp.isTouchScreen();
+var renderLeftPane = !isTouch  || (isTouch && ($('.gsp_tb_s_CenterPane:visible, .gsp_tb_s_RightPane:visible').length == 0));
+
+if (renderLeftPane ) {
+ $('#{{:Settings.LeftPaneClientId}}').html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));";
+
+				const string replText = @"// Render the left pane if it exists
+var $lp = $('#{{:Settings.LeftPaneClientId}}');
+
+if ($lp.length > 0) {
+ $lp.html( $.render [ '{{:Settings.LeftPaneTmplName}}' ]( window.{{:Settings.ClientId}}.gspData ));";
+
+				uiTmpl.ScriptTemplate = uiTmpl.ScriptTemplate.Replace(srcText, replText);
+			}
+
+			// Update data schema version to 3.2.1
+			var asDataSchema = ctx.AppSettings.First(a => a.SettingName == "DataSchemaVersion");
+			asDataSchema.SettingValue = "3.2.1";
 
 			ctx.SaveChanges();
 		}

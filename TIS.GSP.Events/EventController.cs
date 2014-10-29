@@ -340,26 +340,43 @@ namespace GalleryServerPro.Events
 		{
 			var events = new EventCollection();
 
-			foreach (var ev in eventDtos)
+			try
 			{
-				events.Add(new Event(ev.EventId,
-														ev.EventType,
-														ev.FKGalleryId,
-														ev.TimeStampUtc,
-														ev.ExType,
-														ev.Message,
-														Deserialize(ev.EventData),
-														ev.ExSource,
-														ev.ExTargetSite,
-														ev.ExStackTrace,
-														ev.InnerExType,
-														ev.InnerExMessage,
-														ev.InnerExSource,
-														ev.InnerExTargetSite,
-														ev.InnerExStackTrace,
-														Deserialize(ev.InnerExData),
-														ev.Url,
-														Deserialize(ev.FormVariables), Deserialize(ev.Cookies), Deserialize(ev.SessionVariables), Deserialize(ev.ServerVariables)));
+				foreach (var ev in eventDtos)
+				{
+					events.Add(new Event(ev.EventId,
+						ev.EventType,
+						ev.FKGalleryId,
+						ev.TimeStampUtc,
+						ev.ExType,
+						ev.Message,
+						Deserialize(ev.EventData),
+						ev.ExSource,
+						ev.ExTargetSite,
+						ev.ExStackTrace,
+						ev.InnerExType,
+						ev.InnerExMessage,
+						ev.InnerExSource,
+						ev.InnerExTargetSite,
+						ev.InnerExStackTrace,
+						Deserialize(ev.InnerExData),
+						ev.Url,
+						Deserialize(ev.FormVariables), Deserialize(ev.Cookies), Deserialize(ev.SessionVariables), Deserialize(ev.ServerVariables)));
+				}
+			}
+			catch (InvalidOperationException ex)
+			{
+				if (ex.Source.Equals("System.Data.SqlServerCe"))
+				{
+					// We hit the SQL CE bug described here: http://connect.microsoft.com/SQLServer/feedback/details/606152
+					// Clear the table.
+					var sqlCeController = new SqlCeController(GetConnectionStringSettings().ConnectionString);
+
+					sqlCeController.ClearEventLog();
+
+					events.Clear();
+				}
+				else throw;
 			}
 
 			return events;
@@ -657,6 +674,27 @@ namespace GalleryServerPro.Events
 				repo.Save();
 
 				ev.EventId = eDto.EventId;
+			}
+		}
+
+		/// <summary>
+		/// Gets the connection string settings for the connection string associated with the gallery data.
+		/// </summary>
+		/// <returns>An instance of <see cref="System.Configuration.ConnectionStringSettings" />.</returns>
+		private static System.Configuration.ConnectionStringSettings GetConnectionStringSettings()
+		{
+			return System.Configuration.ConfigurationManager.ConnectionStrings.Cast<System.Configuration.ConnectionStringSettings>().First(cnStringObj => cnStringObj.Name == GetConnectionStringName());
+		}
+
+		/// <summary>
+		/// Gets the name of the connection string for the gallery data.
+		/// </summary>
+		/// <returns>System.String.</returns>
+		private static string GetConnectionStringName()
+		{
+			using (var repo = new GalleryRepository())
+			{
+				return repo.ConnectionStringName;
 			}
 		}
 
