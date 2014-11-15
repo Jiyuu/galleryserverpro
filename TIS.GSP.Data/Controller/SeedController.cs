@@ -134,7 +134,7 @@ $('#{{:Settings.HeaderClientId}}').gspHeader('{{:Settings.HeaderTmplName}}', win
 <div class='gsp_moContainer'>
 {{:MediaItem.Views[MediaItem.ViewIndex].HtmlOutput}}</div>
 {{if Settings.ShowMediaObjectTitle}}
-<div class='gsp_mediaObjectTitle'>{{:MediaItem.Title}}</div>
+<div class='gsp_mediaObjectTitle'><a href='{{: ~getMediaDownloadUrl(MediaItem.Id, true) }}' class='gsp_mo_share_dwnld'>{{:MediaItem.Title}}</a></div>
 {{/if}}
 </div>
 
@@ -153,7 +153,7 @@ $('#{{:Settings.HeaderClientId}}').gspHeader('{{:Settings.HeaderTmplName}}', win
 	{{if Album.Permissions.ViewOriginalMediaObject}}
 	<option value='3'>{{:Resource.MoShareSlctOrg}}</option>
 	{{/if}}
- </select><a href='{{: ~getMediaUrl(MediaItem.Id, true) }}' class='gsp_mo_share_dwnld'>{{:Resource.MoShareDwnldFile}}</a>
+ </select><a href='{{: ~getMediaDownloadUrl(MediaItem.Id, true) }}' class='gsp_mo_share_dwnld'>{{:Resource.MoShareDwnldFile}}</a>
 {{/if}}
 {{if Settings.AllowZipDownload}}
  <a href='{{: ~getDownloadUrl(Album.Id) }}' class='gsp_mo_share_dwnld_zip' title='{{:Resource.MoShareDwnldZipTt}}'>{{:Resource.MoShareDwnldZip}}</a>

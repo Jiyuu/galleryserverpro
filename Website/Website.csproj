@@ -54,6 +54,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Elmah">
+      <HintPath>..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
@@ -106,6 +109,7 @@
   <ItemGroup>
     <EmbeddedResource Include="App_GlobalResources\gsp-ftr-logo-170x46.png" />
     <EmbeddedResource Include="App_GlobalResources\RogerMartin&amp;Family.jpg" />
+    <Content Include="App_Readme\Elmah.txt" />
     <Content Include="gs\pages\admin\mediatemplates.ascx" />
     <Content Include="gs\pages\eula-commercial.htm" />
     <Content Include="gs\script\debug\jquery-migrate.js" />
@@ -1059,7 +1063,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>False</AutoAssignPort>
           <DevelopmentServerPort>55934</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
