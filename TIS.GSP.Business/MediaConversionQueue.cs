@@ -485,7 +485,8 @@ namespace GalleryServerPro.Business
 														TargetHeight = GetTargetHeight(mediaObject, gallerySetting, encoderSetting),
 														FFmpegArgs = String.Empty,
 														FFmpegOutput = String.Empty,
-														CancellationToken = CancelTokenSource.Token
+														CancellationToken = CancelTokenSource.Token,
+                                                        UseCustomTool=true
 													};
 
 			mediaSettings.FFmpegOutput = FFmpeg.CreateMedia(mediaSettings);

@@ -94,5 +94,14 @@ namespace GalleryServerPro.Business
 		/// </summary>
 		/// <value>An instance of <see cref="CancellationToken" />.</value>
 		public CancellationToken CancellationToken { get; set; }
+
+        private bool useCustomTool=false;
+
+        public bool UseCustomTool
+        {
+            get { return useCustomTool; }
+            set { useCustomTool = value; }
+        }
+
 	}
 }

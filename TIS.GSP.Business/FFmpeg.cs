@@ -445,7 +445,7 @@ namespace GalleryServerPro.Business
 
 			InitializeOutput();
 
-			ProcessStartInfo info = new ProcessStartInfo(AppSetting.Instance.FFmpegPath, MediaSettings.FFmpegArgs);
+            ProcessStartInfo info = new ProcessStartInfo(!MediaSettings.UseCustomTool ? AppSetting.Instance.FFmpegPath : AppSetting.Instance.FFmpegPath.Replace("ffmpeg.exe","video2mp4.exe"), MediaSettings.FFmpegArgs);
 			info.UseShellExecute = false;
 			info.CreateNoWindow = true;
 			info.RedirectStandardError = true;
